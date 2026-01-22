@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>JSON → CSV</title>
+</head>
+<body>
+  <h2>JSON → CSV converter</h2>
+
+  <label>Batch size:
+    <input id="batchSize" type="number" value="500" />
+  </label>
+  <br><br>
+
+  <textarea id="input" rows="10" cols="80" placeholder="Paste your JSON lines here"></textarea>
+  <br><br>
+
+  <button onclick="convert()">Convert</button>
+  <button onclick="download()">Download CSV</button>
+
+  <h3>Output</h3>
+  <textarea id="output" rows="10" cols="80"></textarea>
+
+  <script>
+    function convert() {
+      const batchSize = parseInt(document.getElementById("batchSize").value, 10) || 500;
+      const text = document.getElementById("input").value;
+      const lines = text.split("\n").map(x => x.trim()).filter(x => x);
+
+      const allKeys = {};
+      const seenRegistraties = {};
+      let headersWritten = false;
+
+      const outputRows = [];
+
+      for (let start = 0; start < lines.length; start += batchSize) {
+        const slice = lines.slice(start, start + batchSize);
+        const batchObjects = [];
+
+        slice.forEach(line => {
+          try {
+            const obj = JSON.parse(line);
+            let reg = obj["registratienummer"];
+            const vest = obj["vestigingsnummer"];
+
+            if (!reg || typeof reg !== "string") return;
+            reg = reg.trim().toUpperCase();
+            if (!reg.startsWith("KDB") || seenRegistraties[reg]) return;
+            if (!vest || String(vest).trim() === "") return;
+
+            seenRegistraties[reg] = true;
+            obj["registratienummer"] = reg;
+            batchObjects.push(obj);
+
+            Object.keys(obj).forEach(k => allKeys[k] = true);
+          } catch (e) {}
+        });
+
+        if (!batchObjects.length) continue;
+
+        const headers = Object.keys(allKeys);
+
+        if (!headersWritten) {
+          outputRows.push(headers);
+          headersWritten = true;
+        }
+
+        batchObjects.forEach(obj => {
+          const row = headers.map(h => obj.hasOwnProperty(h) ? obj[h] : "");
+          outputRows.push(row);
+        });
+      }
+
+      const csv = outputRows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+      document.getElementById("output").value = csv;
+    }
+
+    function download() {
+      const csv = document.getElementById("output").value;
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "output.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
