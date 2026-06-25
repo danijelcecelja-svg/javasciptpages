@@ -1,3 +1,20 @@
+function convertLine(line, lineNumber) {
+      
+      const columns = line.split(";");
+
+      if (lineNumber === 0) {
+        return line;
+      }
+
+      const langEmailAdres = (columns[13] || "").trim();
+
+      if (langEmailAdres !== "") {
+        return line;
+      }
+
+      return null;
+    }
+
 function convert() {
       const text = document.getElementById("input").value.trim();
 
@@ -26,37 +43,6 @@ function convert() {
       document.getElementById("output").value = outputLines.join("\n");
     }
 
-    function convertLine(line, lineNumber) {
-      const columns = line.split(";");
+    
 
-      if (lineNumber === 0) {
-        return line;
-      }
-
-      const langEmailAdres = (columns[13] || "").trim();
-
-      if (langEmailAdres !== "") {
-        return line;
-      }
-
-      return null;
-    }
-
-    function download() {
-      const content = document.getElementById("output").value;
-
-      const blob = new Blob([content], {
-        type: "text/plain;charset=utf-8"
-      });
-
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "output.txt";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-
-      URL.revokeObjectURL(url);
-    }
+   
