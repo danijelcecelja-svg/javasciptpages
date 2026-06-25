@@ -31,7 +31,7 @@ function convert() {
 
       let start = 0;
 
-      if(SKIP_HEADER) start=;
+      if(SKIP_HEADER) start=1;
 
       for (let i = start; i < lines.length; i++) {
         const result = convertLine(lines[i], i);
