@@ -29,7 +29,7 @@ function convert() {
       const lines = text.split(/\r?\n/);
       const outputLines = [];
 
-      let start = ;
+      let start = 0;
 
       if(SKIP_HEADER) start=;
 
