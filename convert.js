@@ -1,6 +1,9 @@
+const DELIMITER = ";";
+const SKIP_HEADER = false;
+
 function convertLine(line, lineNumber) {
       
-      const columns = line.split(";");
+      const columns = line.split(DELIMITER);
 
       if (lineNumber === 0) {
         return line;
@@ -26,7 +29,11 @@ function convert() {
       const lines = text.split(/\r?\n/);
       const outputLines = [];
 
-      for (let i = 0; i < lines.length; i++) {
+      let start = ;
+
+      if(SKIP_HEADER) start=;
+
+      for (let i = start; i < lines.length; i++) {
         const result = convertLine(lines[i], i);
 
         if (result === null || result === undefined) {
