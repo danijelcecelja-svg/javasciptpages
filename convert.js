@@ -43,6 +43,12 @@ function convert() {
       document.getElementById("output").value = outputLines.join("\n");
     }
 
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("version").textContent =
+     "Last Modified: " + response.headers.get("Last-Modified");
+});
+
     
 
    
