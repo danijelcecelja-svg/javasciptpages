@@ -1,3 +1,24 @@
+const DELIMITER = ";";
+const SKIP_HEADER = false;
+const UNIQUE_KEY = "registratienummer";
+
+function convertLine(line, lineNumber) {
+
+    const columns = line.split(DELIMITER);
+
+    if (lineNumber === 0) {
+        return line;
+    }
+
+    const langEmailAdres = (columns[13] || "").trim();
+
+    if (langEmailAdres !== "") {
+        return line;
+    }
+
+    return null;
+}
+
 function convert() {
 
     const text = document.getElementById("input").value.trim();
@@ -9,13 +30,13 @@ function convert() {
 
     const lines = text.split(/\r?\n/);
     const outputLines = [];
-    const seenRegistraties = new Set();
+    const seenKeys = new Set();
 
-    let registratieColumn = -1;
+    let uniqueKeyColumn = -1;
 
     if (lines.length > 0) {
         const headers = lines[0].split(DELIMITER);
-        registratieColumn = headers.indexOf("registratienummer");
+        uniqueKeyColumn = headers.indexOf(UNIQUE_KEY);
     }
 
     let start = 0;
@@ -26,15 +47,18 @@ function convert() {
 
     for (let i = start; i < lines.length; i++) {
 
-        if (i > 0 && registratieColumn >= 0) {
+        if (i > 0 && uniqueKeyColumn >= 0) {
+
             const columns = lines[i].split(DELIMITER);
-            const registratie = (columns[registratieColumn] || "").trim();
+            const key = (columns[uniqueKeyColumn] || "").trim();
 
-            if (seenRegistraties.has(registratie)) {
-                continue;
+            if (key !== "") {
+                if (seenKeys.has(key)) {
+                    continue;
+                }
+
+                seenKeys.add(key);
             }
-
-            seenRegistraties.add(registratie);
         }
 
         const result = convertLine(lines[i], i);
@@ -51,4 +75,24 @@ function convert() {
     }
 
     document.getElementById("output").value = outputLines.join("\n");
+}
+
+function download() {
+
+    const content = document.getElementById("output").value;
+
+    const blob = new Blob([content], {
+        type: "text/plain;charset=utf-8"
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "output.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
 }
