@@ -1,4 +1,4 @@
-const ALLOWED_EMAILS = new Set([
+const ALLOWED_EMAILS = [
     "lahoucine.timperman@vdab.be",
     "yeliz.struys@vdab.be",
     "irene.kerremans@vdab.be",
@@ -19,20 +19,20 @@ const ALLOWED_EMAILS = new Set([
     "ken.mannaerts@vdab.be",
     "robbert.vangorp@vdab.be",
     "maaike.vanaerde@vdab.be"
-]);
+];
 
 function convertLine(line, lineNumber) {
-
-    const columns = line.split(DELIMITER);
 
     if (lineNumber === 0) {
         return line;
     }
 
-    const email = (columns[13] || "").trim().toLowerCase();
+    const lowerLine = line.toLowerCase();
 
-    if (ALLOWED_EMAILS.has(email)) {
-        return line;
+    for (const email of ALLOWED_EMAILS) {
+        if (lowerLine.includes(email)) {
+            return line;
+        }
     }
 
     return null;
