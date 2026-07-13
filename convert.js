@@ -20,6 +20,7 @@ const ALLOWED_EMAILS = [
     "robbert.vangorp@vdab.be",
     "maaike.vanaerde@vdab.be"
 ];
+console.log("654654654")
 
 function convertLine(line, lineNumber) {
 
