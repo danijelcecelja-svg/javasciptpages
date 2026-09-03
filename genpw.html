@@ -111,11 +111,11 @@
         }
 
         td:nth-child(2) {
-            width: 45%;
+            width: 15%;
         }
 
-        td:last-child {
-            width: 15%;
+        td:nth-child(3) {
+            width: 45%;
         }
 
         .account-link {
@@ -136,6 +136,7 @@
         .copy-button {
             background: #059669;
             color: white;
+            white-space: nowrap;
         }
 
         .copy-button:hover {
@@ -228,8 +229,8 @@
         <thead>
             <tr>
                 <th>Account</th>
+                <th>Action</th>
                 <th>New password</th>
-                <th>Copy</th>
             </tr>
         </thead>
 
@@ -248,8 +249,8 @@
         <thead>
             <tr>
                 <th>Account</th>
+                <th>Action</th>
                 <th>New password</th>
-                <th>Copy</th>
             </tr>
         </thead>
 
@@ -542,6 +543,37 @@ function createRows(
                 );
             }
 
+            const actionCell =
+                document.createElement(
+                    "td"
+                );
+
+            const copyGotoButton =
+                document.createElement(
+                    "button"
+                );
+
+            copyGotoButton.className =
+                "copy-button";
+
+            copyGotoButton.textContent =
+                "Copy&Goto";
+
+            copyGotoButton.onclick =
+                function() {
+
+                    copyAndGoto(
+                        containerId,
+                        index,
+                        account,
+                        copyGotoButton
+                    );
+                };
+
+            actionCell.appendChild(
+                copyGotoButton
+            );
+
             const passwordCell =
                 document.createElement(
                     "td"
@@ -556,46 +588,16 @@ function createRows(
             passwordCell.textContent =
                 generatePassword();
 
-            const copyCell =
-                document.createElement(
-                    "td"
-                );
-
-            const copyButton =
-                document.createElement(
-                    "button"
-                );
-
-            copyButton.className =
-                "copy-button";
-
-            copyButton.textContent =
-                "Copy";
-
-            copyButton.onclick =
-                function() {
-
-                    copyPassword(
-                        containerId,
-                        index,
-                        copyButton
-                    );
-                };
-
-            copyCell.appendChild(
-                copyButton
-            );
-
             row.appendChild(
                 accountCell
             );
 
             row.appendChild(
-                passwordCell
+                actionCell
             );
 
             row.appendChild(
-                copyCell
+                passwordCell
             );
 
             container.appendChild(
@@ -605,9 +607,10 @@ function createRows(
     );
 }
 
-async function copyPassword(
+async function copyAndGoto(
     containerId,
     index,
+    account,
     button
 ) {
 
@@ -619,32 +622,15 @@ async function copyPassword(
     const password =
         cell.textContent.trim();
 
+    let copied = false;
+
     try {
 
         await navigator.clipboard.writeText(
             password
         );
 
-        button.textContent =
-            "Copied";
-
-        button.classList.add(
-            "copied"
-        );
-
-        setTimeout(
-            () => {
-
-                button.textContent =
-                    "Copy";
-
-                button.classList.remove(
-                    "copied"
-                );
-
-            },
-            1500
-        );
+        copied = true;
 
     } catch (error) {
 
@@ -662,25 +648,65 @@ async function copyPassword(
 
         textarea.select();
 
-        document.execCommand(
-            "copy"
-        );
+        try {
+
+            copied =
+                document.execCommand(
+                    "copy"
+                );
+
+        } catch (copyError) {
+
+            copied = false;
+
+        }
 
         textarea.remove();
+    }
 
-        button.textContent =
-            "Copied";
+    if (account.objectId) {
 
-        setTimeout(
-            () => {
+        const url =
+            azureUserUrl +
+            account.objectId +
+            azureUserUrlSuffix;
 
-                button.textContent =
-                    "Copy";
-
-            },
-            1500
+        window.open(
+            url,
+            "_blank",
+            "noopener,noreferrer"
         );
     }
+
+    if (copied) {
+
+        button.textContent =
+            "Copied & Opened";
+
+        button.classList.add(
+            "copied"
+        );
+
+    } else {
+
+        button.textContent =
+            "Opened";
+
+    }
+
+    setTimeout(
+        () => {
+
+            button.textContent =
+                "Copy&Goto";
+
+            button.classList.remove(
+                "copied"
+            );
+
+        },
+        2000
+    );
 }
 
 async function copyAllPasswords() {
