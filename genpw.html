@@ -1,174 +1,179 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demo and Test account password generator</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background: #f5f7fa;
-            color: #1f2937;
-        }
+```
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+        background: #f5f7fa;
+        color: #1f2937;
+    }
 
-        h1 {
-            margin-bottom: 8px;
-        }
+    h1 {
+        margin-bottom: 8px;
+    }
 
-        .subtitle {
-            color: #6b7280;
-            margin-bottom: 30px;
-        }
+    .subtitle {
+        color: #6b7280;
+        margin-bottom: 30px;
+    }
 
-        .controls {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-        }
+    .controls {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
 
-        .control-row {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
+    .control-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
 
-        label {
-            font-weight: bold;
-        }
+    label {
+        font-weight: bold;
+    }
 
-        input[type="number"] {
-            width: 70px;
-            padding: 8px;
-            border: 1px solid #d1d5db;
-            border-radius: 5px;
-            font-size: 14px;
-        }
+    input[type="number"] {
+        width: 70px;
+        padding: 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 5px;
+        font-size: 14px;
+    }
 
-        button {
-            border: none;
-            border-radius: 5px;
-            padding: 9px 14px;
-            cursor: pointer;
-            font-size: 14px;
-        }
+    button {
+        border: none;
+        border-radius: 5px;
+        padding: 9px 14px;
+        cursor: pointer;
+        font-size: 14px;
+    }
 
-        .generate-all {
-            background: #2563eb;
-            color: white;
-        }
+    .generate-all {
+        background: #2563eb;
+        color: white;
+    }
 
-        .generate-all:hover {
-            background: #1d4ed8;
-        }
+    .generate-all:hover {
+        background: #1d4ed8;
+    }
 
-        .copy-all {
-            background: #059669;
-            color: white;
-            font-weight: bold;
-        }
+    .copy-all {
+        background: #059669;
+        color: white;
+        font-weight: bold;
+    }
 
-        .copy-all:hover {
-            background: #047857;
-        }
+    .copy-all:hover {
+        background: #047857;
+    }
 
-        .section {
-            background: white;
-            padding: 20px;
-            margin-bottom: 25px;
-            border-radius: 8px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-        }
+    .section {
+        background: white;
+        padding: 20px;
+        margin-bottom: 25px;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
 
-        h2 {
-            margin-top: 0;
-        }
+    h2 {
+        margin-top: 0;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-        th {
-            text-align: left;
-            background: #f3f4f6;
-            padding: 12px;
-            border-bottom: 2px solid #d1d5db;
-        }
+    th {
+        text-align: left;
+        background: #f3f4f6;
+        padding: 12px;
+        border-bottom: 2px solid #d1d5db;
+    }
 
-        td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #e5e7eb;
-            vertical-align: middle;
-        }
+    td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        vertical-align: middle;
+    }
 
-        td:first-child {
-            width: 40%;
-        }
+    td:first-child {
+        width: 40%;
+    }
 
-        td:nth-child(2) {
-            width: 15%;
-        }
+    td:nth-child(2) {
+        width: 15%;
+    }
 
-        td:nth-child(3) {
-            width: 45%;
-        }
+    td:nth-child(3) {
+        width: 45%;
+    }
 
-        .account-link {
-            color: #2563eb;
-            text-decoration: none;
-        }
+    .account-link {
+        color: #2563eb;
+        text-decoration: none;
+    }
 
-        .account-link:hover {
-            text-decoration: underline;
-        }
+    .account-link:hover {
+        text-decoration: underline;
+    }
 
-        .password {
-            font-family: Consolas, monospace;
-            font-size: 14px;
-            word-break: break-all;
-        }
+    .password {
+        font-family: Consolas, monospace;
+        font-size: 14px;
+        word-break: break-all;
+    }
 
-        .copy-button {
-            background: #059669;
-            color: white;
-            white-space: nowrap;
-        }
+    .copy-button {
+        background: #059669;
+        color: white;
+        white-space: nowrap;
+    }
 
-        .copy-button:hover {
-            background: #047857;
-        }
+    .copy-button:hover {
+        background: #047857;
+    }
 
-        .copied {
-            background: #16a34a;
-        }
+    .copied {
+        background: #6b7280 !important;
+        color: white;
+    }
 
-        .warning {
-            margin-top: 15px;
-            color: #92400e;
-            background: #fffbeb;
-            border: 1px solid #fcd34d;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 13px;
-        }
+    .warning {
+        margin-top: 15px;
+        color: #92400e;
+        background: #fffbeb;
+        border: 1px solid #fcd34d;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 13px;
+    }
 
-        .status {
-            margin-top: 15px;
-            min-height: 18px;
-            font-size: 13px;
-            color: #047857;
-            font-weight: bold;
-        }
+    .status {
+        margin-top: 15px;
+        min-height: 18px;
+        font-size: 13px;
+        color: #047857;
+        font-weight: bold;
+    }
 
-        .missing-id {
-            color: #9ca3af;
-        }
-    </style>
+    .missing-id {
+        color: #9ca3af;
+    }
+</style>
+```
+
 </head>
 
 <body>
@@ -181,82 +186,88 @@
 
 <div class="controls">
 
-    <div class="control-row">
+```
+<div class="control-row">
 
-        <label for="passwordLength">
-            Password length:
-        </label>
+    <label for="passwordLength">
+        Password length:
+    </label>
 
-        <input
-            type="number"
-            id="passwordLength"
-            value="24"
-            min="12"
-            max="128"
-        >
+    <input
+        type="number"
+        id="passwordLength"
+        value="24"
+        min="12"
+        max="128"
+    >
 
-        <button
-            class="generate-all"
-            onclick="generateAll()"
-        >
-            Generate all passwords
-        </button>
+    <button
+        class="generate-all"
+        onclick="generateAll()"
+    >
+        Generate all passwords
+    </button>
 
-        <button
-            class="copy-all"
-            onclick="copyAllPasswords()"
-        >
-            Copy all passwords
-        </button>
+    <button
+        class="copy-all"
+        onclick="copyAllPasswords()"
+    >
+        Copy all passwords
+    </button>
 
-    </div>
+</div>
 
-    <div class="status" id="copyStatus"></div>
+<div class="status" id="copyStatus"></div>
 
-    <div class="warning">
-        Passwords are generated locally in your browser using the Web Crypto API.
-        They are not transmitted to a server.
-    </div>
+<div class="warning">
+    Passwords are generated locally in your browser using the Web Crypto API.
+    They are not transmitted to a server.
+</div>
+```
 
 </div>
 
 <div class="section">
 
-    <h2>Demo accounts</h2>
+```
+<h2>Demo accounts</h2>
 
-    <table>
+<table>
 
-        <thead>
-            <tr>
-                <th>Account</th>
-                <th>Action</th>
-                <th>New password</th>
-            </tr>
-        </thead>
+    <thead>
+        <tr>
+            <th>Account</th>
+            <th>Action</th>
+            <th>New password</th>
+        </tr>
+    </thead>
 
-        <tbody id="demoAccounts"></tbody>
+    <tbody id="demoAccounts"></tbody>
 
-    </table>
+</table>
+```
 
 </div>
 
 <div class="section">
 
-    <h2>Test accounts</h2>
+```
+<h2>Test accounts</h2>
 
-    <table>
+<table>
 
-        <thead>
-            <tr>
-                <th>Account</th>
-                <th>Action</th>
-                <th>New password</th>
-            </tr>
-        </thead>
+    <thead>
+        <tr>
+            <th>Account</th>
+            <th>Action</th>
+            <th>New password</th>
+        </tr>
+    </thead>
 
-        <tbody id="testAccounts"></tbody>
+    <tbody id="testAccounts"></tbody>
 
-    </table>
+</table>
+```
 
 </div>
 
@@ -683,10 +694,6 @@ async function copyAndGoto(
         button.textContent =
             "Copied & Opened";
 
-        button.classList.add(
-            "copied"
-        );
-
     } else {
 
         button.textContent =
@@ -694,18 +701,8 @@ async function copyAndGoto(
 
     }
 
-    setTimeout(
-        () => {
-
-            button.textContent =
-                "Copy&Goto";
-
-            button.classList.remove(
-                "copied"
-            );
-
-        },
-        2000
+    button.classList.add(
+        "copied"
     );
 }
 
