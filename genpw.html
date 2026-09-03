@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Azure Password Generator</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background: #f5f7fa;
-            color: #1f2937;
-        }
 
 ```
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+        background: #f5f7fa;
+        color: #1f2937;
+    }
+
     h1 {
         margin-bottom: 8px;
     }
@@ -94,6 +94,27 @@
         vertical-align: middle;
     }
 
+    td:first-child {
+        width: 40%;
+    }
+
+    td:nth-child(2) {
+        width: 45%;
+    }
+
+    td:last-child {
+        width: 15%;
+    }
+
+    .account-link {
+        color: #2563eb;
+        text-decoration: none;
+    }
+
+    .account-link:hover {
+        text-decoration: underline;
+    }
+
     .password {
         font-family: Consolas, monospace;
         font-size: 14px;
@@ -109,16 +130,6 @@
         background: #047857;
     }
 
-    .regenerate-button {
-        background: #6b7280;
-        color: white;
-        margin-left: 5px;
-    }
-
-    .regenerate-button:hover {
-        background: #4b5563;
-    }
-
     .copied {
         background: #16a34a;
     }
@@ -132,10 +143,15 @@
         border-radius: 5px;
         font-size: 13px;
     }
+
+    .missing-id {
+        color: #9ca3af;
+    }
 </style>
 ```
 
 </head>
+
 <body>
 
 <h1>Azure Password Generator</h1>
@@ -146,9 +162,16 @@
 
 <div class="controls">
     <label for="passwordLength">Password length:</label>
-    <input type="number" id="passwordLength" value="24" min="12" max="128">
 
 ```
+<input
+    type="number"
+    id="passwordLength"
+    value="24"
+    min="12"
+    max="128"
+>
+
 <button class="generate-all" onclick="generateAll()">
     Generate all passwords
 </button>
@@ -171,9 +194,9 @@
             <th>Account</th>
             <th>New password</th>
             <th>Copy</th>
-            <th>Regenerate</th>
         </tr>
     </thead>
+
     <tbody id="demoAccounts"></tbody>
 </table>
 ```
@@ -190,9 +213,9 @@
             <th>Account</th>
             <th>New password</th>
             <th>Copy</th>
-            <th>Regenerate</th>
         </tr>
     </thead>
+
     <tbody id="testAccounts"></tbody>
 </table>
 ```
@@ -200,20 +223,97 @@
 </div>
 
 <script>
+
+const azureUserUrl =
+    "https://portal.azure.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/";
+
+const azureUserUrlSuffix =
+    "/hidePreviewBanner~/true";
+
 const demoAccounts = [
-    "demo1@vdabonline.onmicrosoft.com",
-    "demo2@vdabonline.onmicrosoft.com",
-    "demo3@vdabonline.onmicrosoft.com",
-    "demo4@vdabonline.onmicrosoft.com",
-    "demo6@vdabonline.onmicrosoft.com"
+    {
+        email: "demo1@vdabonline.onmicrosoft.com",
+        objectId: "374379d0-c275-4263-b3e9-22e88d1093c0"
+    },
+    {
+        email: "demo2@vdabonline.onmicrosoft.com",
+        objectId: "9fd5946b-39c5-46f0-ac65-fd26041b84aa"
+    },
+    {
+        email: "demo3@vdabonline.onmicrosoft.com",
+        objectId: "7b1094c6-2d19-42b0-8e0c-7e6d4833444d"
+    },
+    {
+        email: "demo4@vdabonline.onmicrosoft.com",
+        objectId: "c850ff52-a228-47e8-9482-3ad7d066d4d1"
+    },
+    {
+        email: "demo5@vdabonline.onmicrosoft.com",
+        objectId: "17cb02dd-ce29-4252-89da-99e7378aa0f0"
+    },
+    {
+        email: "demo6@vdabonline.onmicrosoft.com",
+        objectId: "1825e6b8-cd0a-4ae8-9fc0-f0c909fe5c0a"
+    },
+    {
+        email: "demo7@vdabonline.onmicrosoft.com",
+        objectId: "fbe68e2a-31f5-4454-be5b-ba10d675903e"
+    },
+    {
+        email: "demo8@vdabonline.onmicrosoft.com",
+        objectId: "c746fba5-de74-4f45-8043-6a8fbb1bae62"
+    },
+    {
+        email: "demo9@vdabonline.onmicrosoft.com",
+        objectId: "b1c3b44a-a29d-463f-bf6a-50a7479fdef2"
+    },
+    {
+        email: "demo10@vdabonline.onmicrosoft.com",
+        objectId: "d6483827-4640-44de-92a3-ee5ea6168221"
+    },
+    {
+        email: "demo11@vdabonline.onmicrosoft.com",
+        objectId: "eda53b45-c227-4189-9c0e-a4c2b1c12ac7"
+    },
+    {
+        email: "demo12@vdabonline.onmicrosoft.com",
+        objectId: "7cdcf6d8-5bc0-45cf-b415-86c018232c13"
+    },
+    {
+        email: "demo13@vdabonline.onmicrosoft.com",
+        objectId: "60f70bd1-8308-40e2-b96a-bf3eb3874ffd"
+    },
+    {
+        email: "demo14@vdabonline.onmicrosoft.com",
+        objectId: "c0c32526-6c06-4017-babb-90ddf89c5078"
+    },
+    {
+        email: "demo15@vdabonline.onmicrosoft.com",
+        objectId: "56d74a3d-5a53-4e9b-b566-0fcd5cedf6df"
+    }
 ];
 
 const testAccounts = [
-    "test1@vdabonline.onmicrosoft.com",
-    "test2@vdabonline.onmicrosoft.com",
-    "test3@vdabonline.onmicrosoft.com",
-    "test4@vdabonline.onmicrosoft.com",
-    "test5@vdabonline.onmicrosoft.com"
+    {
+        email: "test1@vdabonline.onmicrosoft.com",
+        objectId: "242d7eb7-0824-4441-ab41-b0419eb5a045"
+    },
+    {
+        email: "test2@vdabonline.onmicrosoft.com",
+        objectId: "2a2438f7-60d7-44bd-8ee8-1b9c586b7632"
+    },
+    {
+        email: "test3@vdabonline.onmicrosoft.com",
+        objectId: "a18fdb2e-6f2c-495c-ba75-6a55986a6cd7"
+    },
+    {
+        email: "test4@vdabonline.onmicrosoft.com",
+        objectId: "7c737cb6-69de-4fd8-9639-e940eb23b182"
+    },
+    {
+        email: "test5@vdabonline.onmicrosoft.com",
+        objectId: ""
+    }
 ];
 
 const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -239,6 +339,7 @@ function randomCharacter(characters) {
 function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = secureRandom(i + 1);
+
         [array[i], array[j]] = [array[j], array[i]];
     }
 
@@ -246,7 +347,11 @@ function shuffle(array) {
 }
 
 function generatePassword() {
-    let length = parseInt(document.getElementById("passwordLength").value, 10);
+    let length =
+        parseInt(
+            document.getElementById("passwordLength").value,
+            10
+        );
 
     if (isNaN(length) || length < 12) {
         length = 12;
@@ -256,7 +361,12 @@ function generatePassword() {
         length = 128;
     }
 
-    const allCharacters = upper + lower + numbers + symbols;
+    const allCharacters =
+        upper +
+        lower +
+        numbers +
+        symbols;
+
     const password = [];
 
     password.push(randomCharacter(upper));
@@ -272,76 +382,174 @@ function generatePassword() {
 }
 
 function createRows(accounts, containerId) {
-    const container = document.getElementById(containerId);
+    const container =
+        document.getElementById(containerId);
 
     container.innerHTML = "";
 
     accounts.forEach((account, index) => {
-        const row = document.createElement("tr");
 
-        row.innerHTML = `
-            <td>${account}</td>
-            <td class="password" id="${containerId}-password-${index}">
-                ${generatePassword()}
-            </td>
-            <td>
-                <button class="copy-button" onclick="copyPassword('${containerId}', ${index}, this)">
-                    Copy
-                </button>
-            </td>
-            <td>
-                <button class="regenerate-button" onclick="regenerate('${containerId}', ${index})">
-                    Regenerate
-                </button>
-            </td>
-        `;
+        const row =
+            document.createElement("tr");
+
+        const accountCell =
+            document.createElement("td");
+
+        if (account.objectId) {
+
+            const link =
+                document.createElement("a");
+
+            link.className = "account-link";
+
+            link.href =
+                azureUserUrl +
+                account.objectId +
+                azureUserUrlSuffix;
+
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+
+            link.textContent = account.email;
+
+            accountCell.appendChild(link);
+
+        } else {
+
+            const span =
+                document.createElement("span");
+
+            span.className = "missing-id";
+            span.textContent = account.email;
+
+            accountCell.appendChild(span);
+        }
+
+        const passwordCell =
+            document.createElement("td");
+
+        passwordCell.className = "password";
+
+        passwordCell.id =
+            `${containerId}-password-${index}`;
+
+        passwordCell.textContent =
+            generatePassword();
+
+        const copyCell =
+            document.createElement("td");
+
+        const copyButton =
+            document.createElement("button");
+
+        copyButton.className =
+            "copy-button";
+
+        copyButton.textContent =
+            "Copy";
+
+        copyButton.onclick =
+            function() {
+                copyPassword(
+                    containerId,
+                    index,
+                    copyButton
+                );
+            };
+
+        copyCell.appendChild(copyButton);
+
+        row.appendChild(accountCell);
+        row.appendChild(passwordCell);
+        row.appendChild(copyCell);
 
         container.appendChild(row);
     });
 }
 
-function regenerate(containerId, index) {
-    const cell = document.getElementById(`${containerId}-password-${index}`);
-    cell.textContent = generatePassword();
-}
+async function copyPassword(
+    containerId,
+    index,
+    button
+) {
+    const cell =
+        document.getElementById(
+            `${containerId}-password-${index}`
+        );
 
-async function copyPassword(containerId, index, button) {
-    const cell = document.getElementById(`${containerId}-password-${index}`);
-    const password = cell.textContent.trim();
+    const password =
+        cell.textContent.trim();
 
     try {
-        await navigator.clipboard.writeText(password);
 
-        const originalText = button.textContent;
-        button.textContent = "Copied";
-        button.classList.add("copied");
+        await navigator.clipboard.writeText(
+            password
+        );
+
+        button.textContent =
+            "Copied";
+
+        button.classList.add(
+            "copied"
+        );
 
         setTimeout(() => {
-            button.textContent = originalText;
-            button.classList.remove("copied");
+
+            button.textContent =
+                "Copy";
+
+            button.classList.remove(
+                "copied"
+            );
+
         }, 1500);
+
     } catch (error) {
-        const textarea = document.createElement("textarea");
-        textarea.value = password;
-        document.body.appendChild(textarea);
+
+        const textarea =
+            document.createElement("textarea");
+
+        textarea.value =
+            password;
+
+        document.body.appendChild(
+            textarea
+        );
+
         textarea.select();
-        document.execCommand("copy");
+
+        document.execCommand(
+            "copy"
+        );
+
         textarea.remove();
 
-        button.textContent = "Copied";
+        button.textContent =
+            "Copied";
 
         setTimeout(() => {
-            button.textContent = "Copy";
+
+            button.textContent =
+                "Copy";
+
         }, 1500);
     }
 }
 
 function generateAll() {
-    createRows(demoAccounts, "demoAccounts");
-    createRows(testAccounts, "testAccounts");
+    createRows(
+        demoAccounts,
+        "demoAccounts"
+    );
+
+    createRows(
+        testAccounts,
+        "testAccounts"
+    );
 }
 
 generateAll();
+
 </script>
 
 </body>
