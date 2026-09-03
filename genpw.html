@@ -1,155 +1,173 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demo en test account password generator</title>
+    <title>Demo and Test account password generator</title>
 
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f5f7fa;
+            color: #1f2937;
+        }
 
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 40px;
-        background: #f5f7fa;
-        color: #1f2937;
-    }
+        h1 {
+            margin-bottom: 8px;
+        }
 
-    h1 {
-        margin-bottom: 8px;
-    }
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
 
-    .subtitle {
-        color: #6b7280;
-        margin-bottom: 30px;
-    }
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
 
-    .controls {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 25px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
 
-    label {
-        font-weight: bold;
-        margin-right: 10px;
-    }
+        label {
+            font-weight: bold;
+        }
 
-    input[type="number"] {
-        width: 70px;
-        padding: 8px;
-        border: 1px solid #d1d5db;
-        border-radius: 5px;
-        font-size: 14px;
-    }
+        input[type="number"] {
+            width: 70px;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            font-size: 14px;
+        }
 
-    button {
-        border: none;
-        border-radius: 5px;
-        padding: 8px 12px;
-        cursor: pointer;
-        font-size: 14px;
-    }
+        button {
+            border: none;
+            border-radius: 5px;
+            padding: 9px 14px;
+            cursor: pointer;
+            font-size: 14px;
+        }
 
-    .generate-all {
-        margin-left: 15px;
-        background: #2563eb;
-        color: white;
-        padding: 10px 16px;
-    }
+        .generate-all {
+            background: #2563eb;
+            color: white;
+        }
 
-    .generate-all:hover {
-        background: #1d4ed8;
-    }
+        .generate-all:hover {
+            background: #1d4ed8;
+        }
 
-    .section {
-        background: white;
-        padding: 20px;
-        margin-bottom: 25px;
-        border-radius: 8px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
+        .copy-all {
+            background: #059669;
+            color: white;
+            font-weight: bold;
+        }
 
-    h2 {
-        margin-top: 0;
-    }
+        .copy-all:hover {
+            background: #047857;
+        }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
 
-    th {
-        text-align: left;
-        background: #f3f4f6;
-        padding: 12px;
-        border-bottom: 2px solid #d1d5db;
-    }
+        h2 {
+            margin-top: 0;
+        }
 
-    td {
-        padding: 10px 12px;
-        border-bottom: 1px solid #e5e7eb;
-        vertical-align: middle;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
-    td:first-child {
-        width: 40%;
-    }
+        th {
+            text-align: left;
+            background: #f3f4f6;
+            padding: 12px;
+            border-bottom: 2px solid #d1d5db;
+        }
 
-    td:nth-child(2) {
-        width: 45%;
-    }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
 
-    td:last-child {
-        width: 15%;
-    }
+        td:first-child {
+            width: 40%;
+        }
 
-    .account-link {
-        color: #2563eb;
-        text-decoration: none;
-    }
+        td:nth-child(2) {
+            width: 45%;
+        }
 
-    .account-link:hover {
-        text-decoration: underline;
-    }
+        td:last-child {
+            width: 15%;
+        }
 
-    .password {
-        font-family: Consolas, monospace;
-        font-size: 14px;
-        word-break: break-all;
-    }
+        .account-link {
+            color: #2563eb;
+            text-decoration: none;
+        }
 
-    .copy-button {
-        background: #059669;
-        color: white;
-    }
+        .account-link:hover {
+            text-decoration: underline;
+        }
 
-    .copy-button:hover {
-        background: #047857;
-    }
+        .password {
+            font-family: Consolas, monospace;
+            font-size: 14px;
+            word-break: break-all;
+        }
 
-    .copied {
-        background: #16a34a;
-    }
+        .copy-button {
+            background: #059669;
+            color: white;
+        }
 
-    .warning {
-        margin-top: 15px;
-        color: #92400e;
-        background: #fffbeb;
-        border: 1px solid #fcd34d;
-        padding: 10px;
-        border-radius: 5px;
-        font-size: 13px;
-    }
+        .copy-button:hover {
+            background: #047857;
+        }
 
-    .missing-id {
-        color: #9ca3af;
-    }
-</style>
+        .copied {
+            background: #16a34a;
+        }
 
+        .warning {
+            margin-top: 15px;
+            color: #92400e;
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 13px;
+        }
 
+        .status {
+            margin-top: 15px;
+            min-height: 18px;
+            font-size: 13px;
+            color: #047857;
+            font-weight: bold;
+        }
+
+        .missing-id {
+            color: #9ca3af;
+        }
+    </style>
 </head>
 
 <body>
@@ -161,64 +179,83 @@
 </div>
 
 <div class="controls">
-    <label for="passwordLength">Password length:</label>
 
+    <div class="control-row">
 
-<input
-    type="number"
-    id="passwordLength"
-    value="24"
-    min="12"
-    max="128"
->
+        <label for="passwordLength">
+            Password length:
+        </label>
 
-<button class="generate-all" onclick="generateAll()">
-    Generate all passwords
-</button>
+        <input
+            type="number"
+            id="passwordLength"
+            value="24"
+            min="12"
+            max="128"
+        >
 
-<div class="warning">
-    Passwords are generated locally in your browser using the Web Crypto API.
-    They are not transmitted to a server.
-</div>
+        <button
+            class="generate-all"
+            onclick="generateAll()"
+        >
+            Generate all passwords
+        </button>
 
+        <button
+            class="copy-all"
+            onclick="copyAllPasswords()"
+        >
+            Copy all passwords
+        </button>
+
+    </div>
+
+    <div class="status" id="copyStatus"></div>
+
+    <div class="warning">
+        Passwords are generated locally in your browser using the Web Crypto API.
+        They are not transmitted to a server.
+    </div>
 
 </div>
 
 <div class="section">
+
     <h2>Demo accounts</h2>
 
+    <table>
 
-<table>
-    <thead>
-        <tr>
-            <th>Account</th>
-            <th>New password</th>
-            <th>Copy</th>
-        </tr>
-    </thead>
+        <thead>
+            <tr>
+                <th>Account</th>
+                <th>New password</th>
+                <th>Copy</th>
+            </tr>
+        </thead>
 
-    <tbody id="demoAccounts"></tbody>
-</table>
+        <tbody id="demoAccounts"></tbody>
 
+    </table>
 
 </div>
 
 <div class="section">
+
     <h2>Test accounts</h2>
 
+    <table>
 
-<table>
-    <thead>
-        <tr>
-            <th>Account</th>
-            <th>New password</th>
-            <th>Copy</th>
-        </tr>
-    </thead>
+        <thead>
+            <tr>
+                <th>Account</th>
+                <th>New password</th>
+                <th>Copy</th>
+            </tr>
+        </thead>
 
-    <tbody id="testAccounts"></tbody>
-</table>
+        <tbody id="testAccounts"></tbody>
 
+    </table>
 
 </div>
 
@@ -312,48 +349,83 @@ const testAccounts = [
     },
     {
         email: "test5@vdabonline.onmicrosoft.com",
-        objectId: "cab42c18-aa29-4cc0-afb3-49085b963667"
+        objectId: ""
     }
 ];
 
-const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-const lower = "abcdefghijkmnopqrstuvwxyz";
-const numbers = "23456789";
-const symbols = "!@#$%^&*_-+=";
+const upper =
+    "ABCDEFGHJKLMNPQRSTUVWXYZ";
+
+const lower =
+    "abcdefghijkmnopqrstuvwxyz";
+
+const numbers =
+    "23456789";
+
+const symbols =
+    "!@#$%^&*_-+=";
 
 function secureRandom(max) {
-    const array = new Uint32Array(1);
-    const limit = Math.floor(0x100000000 / max) * max;
+
+    const array =
+        new Uint32Array(1);
+
+    const limit =
+        Math.floor(0x100000000 / max) * max;
 
     do {
         crypto.getRandomValues(array);
-    } while (array[0] >= limit);
+    }
+    while (array[0] >= limit);
 
     return array[0] % max;
 }
 
 function randomCharacter(characters) {
-    return characters[secureRandom(characters.length)];
+
+    return characters[
+        secureRandom(characters.length)
+    ];
 }
 
 function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = secureRandom(i + 1);
 
-        [array[i], array[j]] = [array[j], array[i]];
+    for (
+        let i = array.length - 1;
+        i > 0;
+        i--
+    ) {
+
+        const j =
+            secureRandom(i + 1);
+
+        [
+            array[i],
+            array[j]
+        ] =
+        [
+            array[j],
+            array[i]
+        ];
     }
 
     return array;
 }
 
 function generatePassword() {
+
     let length =
         parseInt(
-            document.getElementById("passwordLength").value,
+            document.getElementById(
+                "passwordLength"
+            ).value,
             10
         );
 
-    if (isNaN(length) || length < 12) {
+    if (
+        isNaN(length) ||
+        length < 12
+    ) {
         length = 12;
     }
 
@@ -369,102 +441,168 @@ function generatePassword() {
 
     const password = [];
 
-    password.push(randomCharacter(upper));
-    password.push(randomCharacter(lower));
-    password.push(randomCharacter(numbers));
-    password.push(randomCharacter(symbols));
+    password.push(
+        randomCharacter(upper)
+    );
 
-    while (password.length < length) {
-        password.push(randomCharacter(allCharacters));
+    password.push(
+        randomCharacter(lower)
+    );
+
+    password.push(
+        randomCharacter(numbers)
+    );
+
+    password.push(
+        randomCharacter(symbols)
+    );
+
+    while (
+        password.length < length
+    ) {
+
+        password.push(
+            randomCharacter(
+                allCharacters
+            )
+        );
     }
 
     return shuffle(password).join("");
 }
 
-function createRows(accounts, containerId) {
+function createRows(
+    accounts,
+    containerId
+) {
+
     const container =
-        document.getElementById(containerId);
+        document.getElementById(
+            containerId
+        );
 
     container.innerHTML = "";
 
-    accounts.forEach((account, index) => {
+    accounts.forEach(
+        (account, index) => {
 
-        const row =
-            document.createElement("tr");
-
-        const accountCell =
-            document.createElement("td");
-
-        if (account.objectId) {
-
-            const link =
-                document.createElement("a");
-
-            link.className = "account-link";
-
-            link.href =
-                azureUserUrl +
-                account.objectId +
-                azureUserUrlSuffix;
-
-            link.target = "_blank";
-            link.rel = "noopener noreferrer";
-
-            link.textContent = account.email;
-
-            accountCell.appendChild(link);
-
-        } else {
-
-            const span =
-                document.createElement("span");
-
-            span.className = "missing-id";
-            span.textContent = account.email;
-
-            accountCell.appendChild(span);
-        }
-
-        const passwordCell =
-            document.createElement("td");
-
-        passwordCell.className = "password";
-
-        passwordCell.id =
-            `${containerId}-password-${index}`;
-
-        passwordCell.textContent =
-            generatePassword();
-
-        const copyCell =
-            document.createElement("td");
-
-        const copyButton =
-            document.createElement("button");
-
-        copyButton.className =
-            "copy-button";
-
-        copyButton.textContent =
-            "Copy";
-
-        copyButton.onclick =
-            function() {
-                copyPassword(
-                    containerId,
-                    index,
-                    copyButton
+            const row =
+                document.createElement(
+                    "tr"
                 );
-            };
 
-        copyCell.appendChild(copyButton);
+            const accountCell =
+                document.createElement(
+                    "td"
+                );
 
-        row.appendChild(accountCell);
-        row.appendChild(passwordCell);
-        row.appendChild(copyCell);
+            if (account.objectId) {
 
-        container.appendChild(row);
-    });
+                const link =
+                    document.createElement(
+                        "a"
+                    );
+
+                link.className =
+                    "account-link";
+
+                link.href =
+                    azureUserUrl +
+                    account.objectId +
+                    azureUserUrlSuffix;
+
+                link.target =
+                    "_blank";
+
+                link.rel =
+                    "noopener noreferrer";
+
+                link.textContent =
+                    account.email;
+
+                accountCell.appendChild(
+                    link
+                );
+
+            } else {
+
+                const span =
+                    document.createElement(
+                        "span"
+                    );
+
+                span.className =
+                    "missing-id";
+
+                span.textContent =
+                    account.email;
+
+                accountCell.appendChild(
+                    span
+                );
+            }
+
+            const passwordCell =
+                document.createElement(
+                    "td"
+                );
+
+            passwordCell.className =
+                "password";
+
+            passwordCell.id =
+                `${containerId}-password-${index}`;
+
+            passwordCell.textContent =
+                generatePassword();
+
+            const copyCell =
+                document.createElement(
+                    "td"
+                );
+
+            const copyButton =
+                document.createElement(
+                    "button"
+                );
+
+            copyButton.className =
+                "copy-button";
+
+            copyButton.textContent =
+                "Copy";
+
+            copyButton.onclick =
+                function() {
+
+                    copyPassword(
+                        containerId,
+                        index,
+                        copyButton
+                    );
+                };
+
+            copyCell.appendChild(
+                copyButton
+            );
+
+            row.appendChild(
+                accountCell
+            );
+
+            row.appendChild(
+                passwordCell
+            );
+
+            row.appendChild(
+                copyCell
+            );
+
+            container.appendChild(
+                row
+            );
+        }
+    );
 }
 
 async function copyPassword(
@@ -472,6 +610,7 @@ async function copyPassword(
     index,
     button
 ) {
+
     const cell =
         document.getElementById(
             `${containerId}-password-${index}`
@@ -493,21 +632,26 @@ async function copyPassword(
             "copied"
         );
 
-        setTimeout(() => {
+        setTimeout(
+            () => {
 
-            button.textContent =
-                "Copy";
+                button.textContent =
+                    "Copy";
 
-            button.classList.remove(
-                "copied"
-            );
+                button.classList.remove(
+                    "copied"
+                );
 
-        }, 1500);
+            },
+            1500
+        );
 
     } catch (error) {
 
         const textarea =
-            document.createElement("textarea");
+            document.createElement(
+                "textarea"
+            );
 
         textarea.value =
             password;
@@ -527,16 +671,140 @@ async function copyPassword(
         button.textContent =
             "Copied";
 
-        setTimeout(() => {
+        setTimeout(
+            () => {
 
-            button.textContent =
-                "Copy";
+                button.textContent =
+                    "Copy";
 
-        }, 1500);
+            },
+            1500
+        );
+    }
+}
+
+async function copyAllPasswords() {
+
+    const lines = [];
+
+    const allAccounts = [
+        ...demoAccounts,
+        ...testAccounts
+    ];
+
+    allAccounts.forEach(
+        (account, index) => {
+
+            let containerId;
+
+            let accountIndex;
+
+            if (
+                index <
+                demoAccounts.length
+            ) {
+
+                containerId =
+                    "demoAccounts";
+
+                accountIndex =
+                    index;
+
+            } else {
+
+                containerId =
+                    "testAccounts";
+
+                accountIndex =
+                    index -
+                    demoAccounts.length;
+            }
+
+            const cell =
+                document.getElementById(
+                    `${containerId}-password-${accountIndex}`
+                );
+
+            const password =
+                cell.textContent.trim();
+
+            lines.push(
+                `${account.email}\t${password}`
+            );
+        }
+    );
+
+    const clipboardText =
+        lines.join("\n");
+
+    try {
+
+        await navigator.clipboard.writeText(
+            clipboardText
+        );
+
+        const status =
+            document.getElementById(
+                "copyStatus"
+            );
+
+        status.textContent =
+            "All passwords copied to clipboard.";
+
+        setTimeout(
+            () => {
+
+                status.textContent =
+                    "";
+
+            },
+            3000
+        );
+
+    } catch (error) {
+
+        const textarea =
+            document.createElement(
+                "textarea"
+            );
+
+        textarea.value =
+            clipboardText;
+
+        document.body.appendChild(
+            textarea
+        );
+
+        textarea.select();
+
+        document.execCommand(
+            "copy"
+        );
+
+        textarea.remove();
+
+        const status =
+            document.getElementById(
+                "copyStatus"
+            );
+
+        status.textContent =
+            "All passwords copied to clipboard.";
+
+        setTimeout(
+            () => {
+
+                status.textContent =
+                    "";
+
+            },
+            3000
+        );
     }
 }
 
 function generateAll() {
+
     createRows(
         demoAccounts,
         "demoAccounts"
@@ -547,6 +815,17 @@ function generateAll() {
         "testAccounts"
     );
 }
+
+window.addEventListener(
+    "beforeunload",
+    function(event) {
+
+        event.preventDefault();
+
+        event.returnValue = "";
+
+    }
+);
 
 generateAll();
 
