@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>WSE Converter</title>
+</head>
+<body>
+  <h2>֍ WSE Converter ֍</h2>
+
+  <button onclick="convert()">Convert</button>
+  <br><br>
+
+  <a href="https://chatgpt.com/c/6a3d066e-ec60-83eb-859d-f03c4c247fd4" target="_blank">prompt</a>
+  <br><br>
+
+  <a href="https://github.com/danijelcecelja-svg/javasciptpages/edit/main/wse.html" target="_blank">code</a>
+  <br><br>
+
+  <h3>Input</h3>
+
+  <textarea id="input" rows="15" cols="120" placeholder="Paste your aangeleverd data here"></textarea>
+
+  <br><br>
+
+  <h3>Output</h3>
+
+  <textarea id="output" rows="15" cols="120"></textarea>
+
+  <script>
+    const DELIMITER = ";";
+    const OUTPUT_DELIMITER = ";";
+    const SKIP_HEADER = true;
+
+    const OUTPUT_HEADERS = [
+      "UNIQUERECORDID",
+      "CERTIFICATIONNUMBER",
+      "CERTIFICATERECEIVED",
+      "CERTIFICATIONDATE",
+      "CERTIFICATIONORIGIN",
+      "CERTIFICATIONTYPE",
+      "LONGCOMMENTS",
+      "DUEDATE_PSN",
+      "INPROCESS_PSN",
+      "ISSUERPARTY_PARTYNUMBER",
+      "ITEMID",
+      "LEADTIME",
+      "LIABILITYAMOUNT_PSN",
+      "NAME",
+      "REVIEWED",
+      "VALIDFROMDATE",
+      "VALIDTODATE",
+      "VENDCERTIFICATIONSTATEID_IFACTO",
+      "VENDOR_NAME",
+      "VENDOR_PARTYNUMBER"
+    ];
+
+    function getValue(columns, columnIndex, fieldName) {
+      const index = columnIndex[fieldName];
+
+      if (index === undefined) {
+        return "";
+      }
+
+      return (columns[index] || "").trim();
+    }
+
+    function padVestigingsnummer(value) {
+      const cleaned = String(value).trim();
+
+      if (cleaned === "") {
+        return "";
+      }
+
+      return cleaned.padStart(10, "0");
+    }
+
+    function convertLine(columns, columnIndex) {
+
+      const registratienummer = getValue(
+        columns,
+        columnIndex,
+        "registratienummer"
+      );
+
+      const kwaliteitsbewijsType = getValue(
+        columns,
+        columnIndex,
+        "kwaliteitsbewijs_type"
+      );
+
+      const kwaliteitsbewijsNaam = getValue(
+        columns,
+        columnIndex,
+        "kwaliteitsbewijs_naam"
+      );
+
+      const vestigingsnummer = getValue(
+        columns,
+        columnIndex,
+        "vestigingsnummer"
+      );
+
+      const registratieGeldigVan = getValue(
+        columns,
+        columnIndex,
+        "registratie_geldig_van"
+      );
+
+      const registratieGeldigTot = getValue(
+        columns,
+        columnIndex,
+        "registratie_geldig_tot"
+      );
+
+      const registratieStatus = getValue(
+        columns,
+        columnIndex,
+        "registratie_status"
+      );
+
+      const naamOnderneming = getValue(
+        columns,
+        columnIndex,
+        "naam_onderneming"
+      );
+
+      const paddedVestigingsnummer =
+        padVestigingsnummer(vestigingsnummer);
+
+      let vendorName = naamOnderneming.trim();
+
+      if (
+        vendorName === "" ||
+        vendorName.toLowerCase() === "onbekend"
+      ) {
+        vendorName = "Naam onbekend";
+      } else {
+        vendorName = vendorName.substring(0, 160);
+      }
+
+      let certificationState = "";
+
+      switch (registratieStatus.trim().toLowerCase()) {
+        case "actief":
+          certificationState = "AC";
+          break;
+
+        case "niet actief":
+        case "stopgezet":
+          certificationState = "PA";
+          break;
+
+        default:
+          certificationState = "";
+          break;
+      }
+
+      const name =
+        `${kwaliteitsbewijsType} - ${kwaliteitsbewijsNaam}-${paddedVestigingsnummer}`;
+
+      return [
+        registratienummer,
+        registratienummer,
+        "",
+        "",
+        "",
+        "WSE",
+        "",
+        "",
+        "",
+        "0887010362",
+        "",
+        "",
+        "",
+        name,
+        "",
+        registratieGeldigVan,
+        registratieGeldigTot,
+        certificationState,
+        vendorName,
+        vestigingsnummer
+      ];
+    }
+
+    function escapeCsvValue(value) {
+
+      if (value === null || value === undefined) {
+        return "";
+      }
+
+      const stringValue = String(value);
+
+      if (
+        stringValue.includes(OUTPUT_DELIMITER) ||
+        stringValue.includes('"') ||
+        stringValue.includes("\n") ||
+        stringValue.includes("\r")
+      ) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+
+      return stringValue;
+    }
+
+    function convert() {
+
+      const text = document.getElementById("input").value.trim();
+
+      if (!text) {
+        document.getElementById("output").value = "";
+        return;
+      }
+
+      const lines = text.split(/\r?\n/);
+
+      const headers = lines[0].split(DELIMITER);
+      const columnIndex = {};
+
+      headers.forEach((header, index) => {
+        columnIndex[header.trim()] = index;
+      });
+
+      const outputRows = [];
+
+      outputRows.push(OUTPUT_HEADERS);
+
+      let start = 0;
+
+      if (SKIP_HEADER) {
+        start = 1;
+      }
+
+      for (let i = start; i < lines.length; i++) {
+
+        if (!lines[i].trim()) {
+          continue;
+        }
+
+        const columns = lines[i].split(DELIMITER);
+
+        const outputRow = convertLine(
+          columns,
+          columnIndex
+        );
+
+        outputRows.push(outputRow);
+      }
+
+      const output = outputRows
+        .map(row =>
+          row
+            .map(value => escapeCsvValue(value))
+            .join(OUTPUT_DELIMITER)
+        )
+        .join("\n");
+
+      document.getElementById("output").value = output;
+    }
+  </script>
+
+  <div id="version">
+    Last modified:
+    <script>
+      document.write(document.lastModified);
+    </script>
+  </div>
+
+</body>
+</html>
