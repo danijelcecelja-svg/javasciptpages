@@ -1,188 +1,307 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <meta charset="utf-8">
-  <title>SFPI IAM Converter</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>SFPI IAM Converter</title>
+
+    <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-  <h2>֍ SFPI IAM Converter ֍</h2>
 
-  <button onclick="convert()">Convert</button>
-  <br><br>
+<header>
+    <h1>֍ SFPI IAM Converter ֍</h1>
+    <p>Transform SFPI IAM data</p>
+</header>
 
-  <a href="https://chatgpt.com/c/6a3d066e-ec60-83eb-859d-f03c4c247fd4" target="_blank">prompt</a>
-  <br><br>
+<div class="container">
 
-  <a href="https://github.com/danijelcecelja-svg/javasciptpages/edit/main/converters/iam.html" target="_blank">code</a>
-  <br><br>
+    <div class="toolbar">
 
-  <h3>Input</h3>
+        <button onclick="convert()">
+            Convert
+        </button>
 
-  <textarea id="input" rows="15" cols="120" placeholder="Paste your aangeleverd data here"></textarea>
+        <a
+            class="link-button secondary"
+            href="https://chatgpt.com/c/6a3d066e-ec60-83eb-859d-f03c4c247fd4"
+            target="_blank"
+        >
+            Prompt
+        </a>
 
-  <br><br>
+        <a
+            class="link-button secondary"
+            href="https://github.com/danijelcecelja-svg/javasciptpages/edit/main/converters/iam.html"
+            target="_blank"
+        >
+            Code
+        </a>
 
-  <h3>Output</h3>
+    </div>
 
-  <textarea id="output" rows="15" cols="120"></textarea>
+    <div class="section">
 
-  <script>
-    const INPUT_DELIMITER = ",";
-    const OUTPUT_DELIMITER = ",";
+        <h2>Input</h2>
 
-    const OUTPUT_HEADERS = [
-      "Vestigingsnummer",
-      "Ondernemingsnummer",
-      "Onderneming naam",
-      "Integration ID",
-      "Aanspreking",
-      "Contact Voornaam",
-      "Contact Naam",
-      "Contact E-Mail",
-      "Contact GSM",
-      "Contact Telefoon",
-      "Functietitel",
-      "Specifieke lijst Contactpersonen",
-      "Telefoonnummer",
-      "IAM Derden Rol",
-      "IAM Login",
-      "MLP Technische Rol"
-    ];
+        <textarea
+            id="input"
+            placeholder="Paste your aangeleverd data here"
+        ></textarea>
 
-    function parseCsvLine(line) {
-      const values = [];
-      let value = "";
-      let insideQuotes = false;
+    </div>
 
-      for (let i = 0; i < line.length; i++) {
-        const character = line[i];
+    <div class="arrow">
+        ↓
+    </div>
+
+    <div class="section">
+
+        <h2>Output</h2>
+
+        <textarea
+            id="output"
+            placeholder="Converted output will appear here"
+        ></textarea>
+
+    </div>
+
+    <div id="version">
+        Last modified:
+        <script>
+            document.write(document.lastModified);
+        </script>
+    </div>
+
+</div>
+
+<script>
+
+const INPUT_DELIMITER = ",";
+const OUTPUT_DELIMITER = ",";
+
+const OUTPUT_HEADERS = [
+    "Vestigingsnummer",
+    "Ondernemingsnummer",
+    "Onderneming naam",
+    "Integration ID",
+    "Aanspreking",
+    "Contact Voornaam",
+    "Contact Naam",
+    "Contact E-Mail",
+    "Contact GSM",
+    "Contact Telefoon",
+    "Functietitel",
+    "Specifieke lijst Contactpersonen",
+    "Telefoonnummer",
+    "IAM Derden Rol",
+    "IAM Login",
+    "MLP Technische Rol"
+];
+
+function parseCsvLine(line) {
+
+    const values = [];
+
+    let value = "";
+
+    let insideQuotes = false;
+
+    for (
+        let i = 0;
+        i < line.length;
+        i++
+    ) {
+
+        const character =
+            line[i];
 
         if (character === '"') {
-          if (insideQuotes && line[i + 1] === '"') {
-            value += '"';
-            i++;
-          } else {
-            insideQuotes = !insideQuotes;
-          }
-        } else if (character === INPUT_DELIMITER && !insideQuotes) {
-          values.push(value);
-          value = "";
+
+            if (
+                insideQuotes &&
+                line[i + 1] === '"'
+            ) {
+
+                value += '"';
+
+                i++;
+
+            } else {
+
+                insideQuotes =
+                    !insideQuotes;
+
+            }
+
+        } else if (
+            character === INPUT_DELIMITER &&
+            !insideQuotes
+        ) {
+
+            values.push(value);
+
+            value = "";
+
         } else {
-          value += character;
+
+            value += character;
+
         }
-      }
-
-      values.push(value);
-
-      return values;
     }
 
-    function cleanValue(value) {
-      let cleaned = String(value || "").trim();
+    values.push(value);
 
-      if (
+    return values;
+}
+
+function cleanValue(value) {
+
+    let cleaned =
+        String(value || "").trim();
+
+    if (
         cleaned.length >= 2 &&
         cleaned.startsWith('"') &&
         cleaned.endsWith('"')
-      ) {
-        cleaned = cleaned.substring(1, cleaned.length - 1);
-      }
+    ) {
 
-      return cleaned;
+        cleaned =
+            cleaned.substring(
+                1,
+                cleaned.length - 1
+            );
+
     }
 
-    function getValue(columns, columnIndex, fieldName) {
-      const index = columnIndex[fieldName];
+    return cleaned;
+}
 
-      if (index === undefined) {
+function getValue(
+    columns,
+    columnIndex,
+    fieldName
+) {
+
+    const index =
+        columnIndex[fieldName];
+
+    if (index === undefined) {
         return "";
-      }
-
-      return cleanValue(columns[index]);
     }
 
-    function convertLine(columns, columnIndex) {
-      const partnerVestigingNaam = getValue(
-        columns,
-        columnIndex,
-        "PARTNER_VESTIGINGNAAM"
-      );
+    return cleanValue(
+        columns[index]
+    );
+}
 
-      const vestigingsnummer = getValue(
-        columns,
-        columnIndex,
-        "VESTIGING_KBO"
-      );
+function convertLine(
+    columns,
+    columnIndex
+) {
 
-      const ondernemingsnummer = getValue(
-        columns,
-        columnIndex,
-        "VESTIGING_HOOFDZETEL_KBO"
-      );
+    const partnerVestigingNaam =
+        getValue(
+            columns,
+            columnIndex,
+            "PARTNER_VESTIGINGNAAM"
+        );
 
-      const contactNaam = getValue(
-        columns,
-        columnIndex,
-        "CONTACT_NAAM"
-      );
+    const vestigingsnummer =
+        getValue(
+            columns,
+            columnIndex,
+            "VESTIGING_KBO"
+        );
 
-      const contactVoornaam = getValue(
-        columns,
-        columnIndex,
-        "CONTACT_VOORNAAM"
-      );
+    const ondernemingsnummer =
+        getValue(
+            columns,
+            columnIndex,
+            "VESTIGING_HOOFDZETEL_KBO"
+        );
 
-      const contactGsm = getValue(
-        columns,
-        columnIndex,
-        "CONTACT_GSM"
-      );
+    const contactNaam =
+        getValue(
+            columns,
+            columnIndex,
+            "CONTACT_NAAM"
+        );
 
-      const contactTelefoon = getValue(
-        columns,
-        columnIndex,
-        "CONTACT_TELEFOON"
-      );
+    const contactVoornaam =
+        getValue(
+            columns,
+            columnIndex,
+            "CONTACT_VOORNAAM"
+        );
 
-      const contactEmail = getValue(
-        columns,
-        columnIndex,
-        "CONTACT_EMAIL"
-      );
+    const contactGsm =
+        getValue(
+            columns,
+            columnIndex,
+            "CONTACT_GSM"
+        );
 
-      const rollenLijst = getValue(
-        columns,
-        columnIndex,
-        "ROLLEN_LIJST"
-      );
+    const contactTelefoon =
+        getValue(
+            columns,
+            columnIndex,
+            "CONTACT_TELEFOON"
+        );
 
-      const mlpRollenLijst = getValue(
-        columns,
-        columnIndex,
-        "MLPROLLEN_LIJST"
-      );
+    const contactEmail =
+        getValue(
+            columns,
+            columnIndex,
+            "CONTACT_EMAIL"
+        );
 
-      const mlpRollenAantal = getValue(
-        columns,
-        columnIndex,
-        "MLPROLLEN_AANTAL"
-      );
+    const rollenLijst =
+        getValue(
+            columns,
+            columnIndex,
+            "ROLLEN_LIJST"
+        );
 
-      const derdenTamGebruikersnaam = getValue(
-        columns,
-        columnIndex,
-        "DERDEN_TAM_GEBRUIKERSNAAM"
-      );
+    const mlpRollenLijst =
+        getValue(
+            columns,
+            columnIndex,
+            "MLPROLLEN_LIJST"
+        );
 
-      const integrationId = `${ondernemingsnummer} ${contactEmail}`;
+    const mlpRollenAantal =
+        getValue(
+            columns,
+            columnIndex,
+            "MLPROLLEN_AANTAL"
+        );
 
-      let mlpTechnischeRol = "";
+    const derdenTamGebruikersnaam =
+        getValue(
+            columns,
+            columnIndex,
+            "DERDEN_TAM_GEBRUIKERSNAAM"
+        );
 
-      if (Number(mlpRollenAantal) > 0) {
-        mlpTechnischeRol = mlpRollenLijst;
-      }
+    const integrationId =
+        `${ondernemingsnummer} ${contactEmail}`;
 
-      return [
+    let mlpTechnischeRol = "";
+
+    if (
+        Number(mlpRollenAantal) > 0
+    ) {
+
+        mlpTechnischeRol =
+            mlpRollenLijst;
+
+    }
+
+    return [
         vestigingsnummer,
         ondernemingsnummer,
         partnerVestigingNaam,
@@ -199,85 +318,133 @@
         rollenLijst,
         derdenTamGebruikersnaam,
         mlpTechnischeRol
-      ];
+    ];
+}
+
+function escapeCsvValue(value) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+
+        return "";
+
     }
 
-    function escapeCsvValue(value) {
-      if (value === null || value === undefined) {
-        return "";
-      }
+    const stringValue =
+        String(value);
 
-      const stringValue = String(value);
-
-      if (
-        stringValue.includes(OUTPUT_DELIMITER) ||
+    if (
+        stringValue.includes(
+            OUTPUT_DELIMITER
+        ) ||
         stringValue.includes('"') ||
         stringValue.includes("\n") ||
         stringValue.includes("\r")
-      ) {
-        return `"${stringValue.replace(/"/g, '""')}"`;
-      }
+    ) {
 
-      return stringValue;
+        return `"${stringValue.replace(
+            /"/g,
+            '""'
+        )}"`;
+
     }
 
-    function convert() {
-      const text = document.getElementById("input").value.trim();
+    return stringValue;
+}
 
-      if (!text) {
-        document.getElementById("output").value = "";
+function convert() {
+
+    const text =
+        document
+            .getElementById("input")
+            .value
+            .trim();
+
+    if (!text) {
+
+        document.getElementById(
+            "output"
+        ).value = "";
+
         return;
-      }
+    }
 
-      const lines = text.split(/\r?\n/);
+    const lines =
+        text.split(/\r?\n/);
 
-      if (lines.length === 0) {
-        document.getElementById("output").value = "";
+    if (lines.length === 0) {
+
+        document.getElementById(
+            "output"
+        ).value = "";
+
         return;
-      }
+    }
 
-      const headers = parseCsvLine(lines[0]);
+    const headers =
+        parseCsvLine(lines[0]);
 
-      const columnIndex = {};
+    const columnIndex = {};
 
-      headers.forEach((header, index) => {
-        columnIndex[cleanValue(header)] = index;
-      });
+    headers.forEach(
+        (header, index) => {
 
-      const outputRows = [];
+            columnIndex[
+                cleanValue(header)
+            ] = index;
 
-      outputRows.push(OUTPUT_HEADERS);
+        }
+    );
 
-      for (let i = 1; i < lines.length; i++) {
+    const outputRows = [];
+
+    outputRows.push(
+        OUTPUT_HEADERS
+    );
+
+    for (
+        let i = 1;
+        i < lines.length;
+        i++
+    ) {
+
         if (!lines[i].trim()) {
-          continue;
+            continue;
         }
 
-        const columns = parseCsvLine(lines[i]);
+        const columns =
+            parseCsvLine(lines[i]);
 
-        const outputRow = convertLine(columns, columnIndex);
+        const outputRow =
+            convertLine(
+                columns,
+                columnIndex
+            );
 
-        outputRows.push(outputRow);
-      }
-
-      const output = outputRows
-        .map(row =>
-          row
-            .map(value => escapeCsvValue(value))
-            .join(OUTPUT_DELIMITER)
-        )
-        .join("\n");
-
-      document.getElementById("output").value = output;
+        outputRows.push(
+            outputRow
+        );
     }
-  </script>
 
-  <div id="version">
-    Last modified:
-    <script>
-      document.write(document.lastModified);
-    </script>
-  </div>
+    const output =
+        outputRows
+            .map(row =>
+                row
+                    .map(value =>
+                        escapeCsvValue(value)
+                    )
+                    .join(OUTPUT_DELIMITER)
+            )
+            .join("\n");
+
+    document.getElementById(
+        "output"
+    ).value = output;
+}
+
+</script>
 
 </body>
 </html>
