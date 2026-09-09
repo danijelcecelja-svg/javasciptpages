@@ -1,164 +1,344 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <meta charset="utf-8">
-  <title>WSE Converter</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>WSE Converter</title>
+
+    <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-  <h2>֍ WSE Converter ֍</h2>
 
-  <button onclick="convert()">Convert</button>
-  <br><br>
+<header>
+    <h1>֍ WSE Converter ֍</h1>
+    <p>Transform WSE data</p>
+</header>
 
-  <a href="https://chatgpt.com/c/6a3d066e-ec60-83eb-859d-f03c4c247fd4" target="_blank">prompt</a>
-  <br><br>
+<div class="container">
 
-  <a href="https://github.com/danijelcecelja-svg/javasciptpages/edit/main/converters/wse.html" target="_blank">code</a>
-  <br><br>
+    <div class="toolbar">
 
-  <h3>Input</h3>
+        <button onclick="convert()">
+            Convert
+        </button>
 
-  <textarea id="input" rows="15" cols="120" placeholder="Paste your aangeleverd data here"></textarea>
+        <a
+            class="link-button secondary"
+            href="https://chatgpt.com/c/6a3d066e-ec60-83eb-859d-f03c4c247fd4"
+            target="_blank"
+        >
+            Prompt
+        </a>
 
-  <br><br>
+        <a
+            class="link-button secondary"
+            href="https://github.com/danijelcecelja-svg/javasciptpages/edit/main/converters/wse.html"
+            target="_blank"
+        >
+            Code
+        </a>
 
-  <h3>Output</h3>
+    </div>
 
-  <textarea id="output" rows="15" cols="120"></textarea>
+    <div class="section">
 
-  <script>
-    const INPUT_DELIMITER = ",";
-    const OUTPUT_DELIMITER = ",";
+        <h2>Input</h2>
 
-    const OUTPUT_HEADERS = [
-      "UNIQUERECORDID",
-      "CERTIFICATIONNUMBER",
-      "CERTIFICATERECEIVED",
-      "CERTIFICATIONDATE",
-      "CERTIFICATIONORIGIN",
-      "CERTIFICATIONTYPE",
-      "LONGCOMMENTS",
-      "DUEDATE_PSN",
-      "INPROCESS_PSN",
-      "ISSUERPARTY_PARTYNUMBER",
-      "ITEMID",
-      "LEADTIME",
-      "LIABILITYAMOUNT_PSN",
-      "NAME",
-      "REVIEWED",
-      "VALIDFROMDATE",
-      "VALIDTODATE",
-      "VENDCERTIFICATIONSTATEID_IFACTO",
-      "VENDOR_NAME",
-      "VENDOR_PARTYNUMBER"
-    ];
+        <textarea
+            id="input"
+            placeholder="Paste your aangeleverd data here"
+        ></textarea>
 
-    function parseCsvLine(line) {
-      const values = [];
-      let value = "";
-      let insideQuotes = false;
+    </div>
 
-      for (let i = 0; i < line.length; i++) {
-        const character = line[i];
+    <div class="arrow">
+        ↓
+    </div>
+
+    <div class="section">
+
+        <h2>Output</h2>
+
+        <textarea
+            id="output"
+            placeholder="Converted output will appear here"
+        ></textarea>
+
+    </div>
+
+    <div id="version">
+        Last modified:
+        <script>
+            document.write(document.lastModified);
+        </script>
+    </div>
+
+</div>
+
+<script>
+
+const INPUT_DELIMITER = ",";
+const OUTPUT_DELIMITER = ",";
+
+const OUTPUT_HEADERS = [
+    "UNIQUERECORDID",
+    "CERTIFICATIONNUMBER",
+    "CERTIFICATERECEIVED",
+    "CERTIFICATIONDATE",
+    "CERTIFICATIONORIGIN",
+    "CERTIFICATIONTYPE",
+    "LONGCOMMENTS",
+    "DUEDATE_PSN",
+    "INPROCESS_PSN",
+    "ISSUERPARTY_PARTYNUMBER",
+    "ITEMID",
+    "LEADTIME",
+    "LIABILITYAMOUNT_PSN",
+    "NAME",
+    "REVIEWED",
+    "VALIDFROMDATE",
+    "VALIDTODATE",
+    "VENDCERTIFICATIONSTATEID_IFACTO",
+    "VENDOR_NAME",
+    "VENDOR_PARTYNUMBER"
+];
+
+function parseCsvLine(line) {
+
+    const values = [];
+
+    let value = "";
+
+    let insideQuotes = false;
+
+    for (
+        let i = 0;
+        i < line.length;
+        i++
+    ) {
+
+        const character =
+            line[i];
 
         if (character === '"') {
-          if (insideQuotes && line[i + 1] === '"') {
-            value += '"';
-            i++;
-          } else {
-            insideQuotes = !insideQuotes;
-          }
-        } else if (character === INPUT_DELIMITER && !insideQuotes) {
-          values.push(value);
-          value = "";
+
+            if (
+                insideQuotes &&
+                line[i + 1] === '"'
+            ) {
+
+                value += '"';
+
+                i++;
+
+            } else {
+
+                insideQuotes =
+                    !insideQuotes;
+
+            }
+
+        } else if (
+            character === INPUT_DELIMITER &&
+            !insideQuotes
+        ) {
+
+            values.push(value);
+
+            value = "";
+
         } else {
-          value += character;
+
+            value += character;
+
         }
-      }
-
-      values.push(value);
-
-      return values;
     }
 
-    function getValue(columns, columnIndex, fieldName) {
-      const index = columnIndex[fieldName];
+    values.push(value);
 
-      if (index === undefined) {
+    return values;
+}
+
+function getValue(
+    columns,
+    columnIndex,
+    fieldName
+) {
+
+    const index =
+        columnIndex[fieldName];
+
+    if (index === undefined) {
         return "";
-      }
-
-      return (columns[index] || "").trim();
     }
 
-    function convertDate(value) {
-      if (!value) {
+    return (
+        columns[index] || ""
+    ).trim();
+}
+
+function convertDate(value) {
+
+    if (!value) {
         return "";
-      }
+    }
 
-      const parts = value.split("/");
+    const parts =
+        value.split("/");
 
-      if (parts.length !== 3) {
+    if (parts.length !== 3) {
         return value;
-      }
-
-      const day = parts[0].padStart(2, "0");
-      const month = parts[1].padStart(2, "0");
-      const year = parts[2];
-
-      return `${month}/${day}/${year} 00:00:00`;
     }
 
-    function padVestigingsnummer(value) {
-      const cleaned = String(value).trim();
+    const day =
+        parts[0].padStart(2, "0");
 
-      if (cleaned === "") {
+    const month =
+        parts[1].padStart(2, "0");
+
+    const year =
+        parts[2];
+
+    return `${month}/${day}/${year} 00:00:00`;
+}
+
+function padVestigingsnummer(value) {
+
+    const cleaned =
+        String(value).trim();
+
+    if (cleaned === "") {
         return "";
-      }
-
-      return cleaned.padStart(10, "0");
     }
 
-    function convertLine(columns, columnIndex) {
-      const registratienummer = getValue(columns, columnIndex, "registratienummer");
-      const kwaliteitsbewijsType = getValue(columns, columnIndex, "kwaliteitsbewijs_type");
-      const kwaliteitsbewijsNaam = getValue(columns, columnIndex, "kwaliteitsbewijs_naam");
-      const vestigingsnummer = getValue(columns, columnIndex, "vestigingsnummer");
-      const registratieGeldigVan = getValue(columns, columnIndex, "registratie_geldig_van");
-      const registratieGeldigTot = getValue(columns, columnIndex, "registratie_geldig_tot");
-      const registratieStatus = getValue(columns, columnIndex, "registratie_status");
-      const naamOnderneming = getValue(columns, columnIndex, "naam_onderneming");
+    return cleaned.padStart(
+        10,
+        "0"
+    );
+}
 
-      const paddedVestigingsnummer = padVestigingsnummer(vestigingsnummer);
+function convertLine(
+    columns,
+    columnIndex
+) {
 
-      let vendorName = naamOnderneming;
+    const registratienummer =
+        getValue(
+            columns,
+            columnIndex,
+            "registratienummer"
+        );
 
-      if (vendorName === "" || vendorName.toLowerCase() === "onbekend") {
-        vendorName = "Naam onbekend";
-      } else {
-        vendorName = vendorName.substring(0, 160);
-      }
+    const kwaliteitsbewijsType =
+        getValue(
+            columns,
+            columnIndex,
+            "kwaliteitsbewijs_type"
+        );
 
-      let certificationState = "";
+    const kwaliteitsbewijsNaam =
+        getValue(
+            columns,
+            columnIndex,
+            "kwaliteitsbewijs_naam"
+        );
 
-      switch (registratieStatus.toLowerCase()) {
+    const vestigingsnummer =
+        getValue(
+            columns,
+            columnIndex,
+            "vestigingsnummer"
+        );
+
+    const registratieGeldigVan =
+        getValue(
+            columns,
+            columnIndex,
+            "registratie_geldig_van"
+        );
+
+    const registratieGeldigTot =
+        getValue(
+            columns,
+            columnIndex,
+            "registratie_geldig_tot"
+        );
+
+    const registratieStatus =
+        getValue(
+            columns,
+            columnIndex,
+            "registratie_status"
+        );
+
+    const naamOnderneming =
+        getValue(
+            columns,
+            columnIndex,
+            "naam_onderneming"
+        );
+
+    const paddedVestigingsnummer =
+        padVestigingsnummer(
+            vestigingsnummer
+        );
+
+    let vendorName =
+        naamOnderneming;
+
+    if (
+        vendorName === "" ||
+        vendorName.toLowerCase() === "onbekend"
+    ) {
+
+        vendorName =
+            "Naam onbekend";
+
+    } else {
+
+        vendorName =
+            vendorName.substring(
+                0,
+                160
+            );
+    }
+
+    let certificationState = "";
+
+    switch (
+        registratieStatus.toLowerCase()
+    ) {
+
         case "actief":
-          certificationState = "AC";
-          break;
+
+            certificationState =
+                "AC";
+
+            break;
 
         case "niet actief":
         case "stopgezet":
-          certificationState = "PA";
-          break;
+
+            certificationState =
+                "PA";
+
+            break;
 
         default:
-          certificationState = "";
-          break;
-      }
 
-      const name = `${kwaliteitsbewijsType} - ${kwaliteitsbewijsNaam}-${paddedVestigingsnummer}`;
+            certificationState =
+                "";
 
-      return [
+            break;
+    }
+
+    const name =
+        `${kwaliteitsbewijsType} - ${kwaliteitsbewijsNaam}-${paddedVestigingsnummer}`;
+
+    return [
         registratienummer,
         registratienummer,
         "",
@@ -174,85 +354,131 @@
         "",
         name,
         "",
-        convertDate(registratieGeldigVan),
-        convertDate(registratieGeldigTot),
+        convertDate(
+            registratieGeldigVan
+        ),
+        convertDate(
+            registratieGeldigTot
+        ),
         certificationState,
         vendorName,
         vestigingsnummer
-      ];
+    ];
+}
+
+function escapeCsvValue(value) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+
+        return "";
     }
 
-    function escapeCsvValue(value) {
-      if (value === null || value === undefined) {
-        return "";
-      }
+    const stringValue =
+        String(value);
 
-      const stringValue = String(value);
-
-      if (
-        stringValue.includes(OUTPUT_DELIMITER) ||
+    if (
+        stringValue.includes(
+            OUTPUT_DELIMITER
+        ) ||
         stringValue.includes('"') ||
         stringValue.includes("\n") ||
         stringValue.includes("\r")
-      ) {
-        return `"${stringValue.replace(/"/g, '""')}"`;
-      }
+    ) {
 
-      return stringValue;
+        return `"${stringValue.replace(
+            /"/g,
+            '""'
+        )}"`;
     }
 
-    function convert() {
-      const text = document.getElementById("input").value.trim();
+    return stringValue;
+}
 
-      if (!text) {
-        document.getElementById("output").value = "";
+function convert() {
+
+    const text =
+        document
+            .getElementById("input")
+            .value
+            .trim();
+
+    if (!text) {
+
+        document.getElementById(
+            "output"
+        ).value = "";
+
         return;
-      }
+    }
 
-      const lines = text.split(/\r?\n/);
+    const lines =
+        text.split(/\r?\n/);
 
-      const headers = parseCsvLine(lines[0]);
+    const headers =
+        parseCsvLine(lines[0]);
 
-      const columnIndex = {};
+    const columnIndex = {};
 
-      headers.forEach((header, index) => {
-        columnIndex[header.trim()] = index;
-      });
+    headers.forEach(
+        (header, index) => {
 
-      const outputRows = [];
+            columnIndex[
+                header.trim()
+            ] = index;
 
-      outputRows.push(OUTPUT_HEADERS);
+        }
+    );
 
-      for (let i = 1; i < lines.length; i++) {
+    const outputRows = [];
+
+    outputRows.push(
+        OUTPUT_HEADERS
+    );
+
+    for (
+        let i = 1;
+        i < lines.length;
+        i++
+    ) {
+
         if (!lines[i].trim()) {
-          continue;
+            continue;
         }
 
-        const columns = parseCsvLine(lines[i]);
+        const columns =
+            parseCsvLine(lines[i]);
 
-        const outputRow = convertLine(columns, columnIndex);
+        const outputRow =
+            convertLine(
+                columns,
+                columnIndex
+            );
 
-        outputRows.push(outputRow);
-      }
-
-      const output = outputRows
-        .map(row =>
-          row
-            .map(value => escapeCsvValue(value))
-            .join(OUTPUT_DELIMITER)
-        )
-        .join("\n");
-
-      document.getElementById("output").value = output;
+        outputRows.push(
+            outputRow
+        );
     }
-  </script>
 
-  <div id="version">
-    Last modified:
-    <script>
-      document.write(document.lastModified);
-    </script>
-  </div>
+    const output =
+        outputRows
+            .map(row =>
+                row
+                    .map(value =>
+                        escapeCsvValue(value)
+                    )
+                    .join(OUTPUT_DELIMITER)
+            )
+            .join("\n");
+
+    document.getElementById(
+        "output"
+    ).value = output;
+}
+
+</script>
 
 </body>
 </html>
