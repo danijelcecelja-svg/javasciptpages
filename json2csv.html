@@ -1,89 +1,268 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <title>JSON → CSV</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>JSON → CSV</title>
+
+    <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-  <h2>JSON → CSV converter</h2>
 
-  <label>Batch size:
-    <input id="batchSize" type="number" value="500" />
-  </label>
-  <br><br>
+<header>
+    <h1>JSON → CSV Converter</h1>
+    <p>Convert JSON lines to CSV</p>
+</header>
 
-  <textarea id="input" rows="10" cols="80" placeholder="Paste your JSON lines here"></textarea>
-  <br><br>
+<div class="container">
 
-  <button onclick="convert()">Convert</button>
-  <button onclick="download()">Download CSV</button>
+    <div class="controls">
 
-  <h3>Output</h3>
-  <textarea id="output" rows="10" cols="80"></textarea>
+        <div class="control-row">
 
-  <script>
-    function convert() {
-      const batchSize = parseInt(document.getElementById("batchSize").value, 10) || 500;
-      const text = document.getElementById("input").value;
-      const lines = text.split("\n").map(x => x.trim()).filter(x => x);
+            <label for="batchSize">
+                Batch size:
+            </label>
 
-      const allKeys = {};
-      const seenRegistraties = {};
-      let headersWritten = false;
+            <input
+                id="batchSize"
+                type="number"
+                value="500"
+            >
 
-      const outputRows = [];
+            <button onclick="convert()">
+                Convert
+            </button>
 
-      for (let start = 0; start < lines.length; start += batchSize) {
-        const slice = lines.slice(start, start + batchSize);
+            <button onclick="download()">
+                Download CSV
+            </button>
+
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <h2>Input</h2>
+
+        <textarea
+            id="input"
+            placeholder="Paste your JSON lines here"
+        ></textarea>
+
+    </div>
+
+    <div class="arrow">
+        ↓
+    </div>
+
+    <div class="section">
+
+        <h2>Output</h2>
+
+        <textarea
+            id="output"
+            placeholder="CSV output will appear here"
+        ></textarea>
+
+    </div>
+
+    <div id="version">
+        Last modified:
+        <script>
+            document.write(document.lastModified);
+        </script>
+    </div>
+
+</div>
+
+<script>
+
+function convert() {
+
+    const batchSize =
+        parseInt(
+            document.getElementById(
+                "batchSize"
+            ).value,
+            10
+        ) || 500;
+
+    const text =
+        document.getElementById(
+            "input"
+        ).value;
+
+    const lines =
+        text
+            .split("\n")
+            .map(x => x.trim())
+            .filter(x => x);
+
+    const allKeys = {};
+
+    const seenRegistraties = {};
+
+    let headersWritten = false;
+
+    const outputRows = [];
+
+    for (
+        let start = 0;
+        start < lines.length;
+        start += batchSize
+    ) {
+
+        const slice =
+            lines.slice(
+                start,
+                start + batchSize
+            );
+
         const batchObjects = [];
 
         slice.forEach(line => {
-          try {
-            const obj = JSON.parse(line);
-            let reg = obj["registratienummer"];
-            const vest = obj["vestigingsnummer"];
 
-            if (!reg || typeof reg !== "string") return;
-            reg = reg.trim().toUpperCase();
-            if (!reg.startsWith("KDB") || seenRegistraties[reg]) return;
-            if (!vest || String(vest).trim() === "") return;
+            try {
 
-            seenRegistraties[reg] = true;
-            obj["registratienummer"] = reg;
-            batchObjects.push(obj);
+                const obj =
+                    JSON.parse(line);
 
-            Object.keys(obj).forEach(k => allKeys[k] = true);
-          } catch (e) {}
+                let reg =
+                    obj["registratienummer"];
+
+                const vest =
+                    obj["vestigingsnummer"];
+
+                if (
+                    !reg ||
+                    typeof reg !== "string"
+                ) {
+                    return;
+                }
+
+                reg =
+                    reg
+                        .trim()
+                        .toUpperCase();
+
+                if (
+                    !reg.startsWith("KDB") ||
+                    seenRegistraties[reg]
+                ) {
+                    return;
+                }
+
+                if (
+                    !vest ||
+                    String(vest).trim() === ""
+                ) {
+                    return;
+                }
+
+                seenRegistraties[reg] =
+                    true;
+
+                obj["registratienummer"] =
+                    reg;
+
+                batchObjects.push(obj);
+
+                Object.keys(obj).forEach(
+                    k => allKeys[k] = true
+                );
+
+            } catch (e) {}
+
         });
 
-        if (!batchObjects.length) continue;
+        if (!batchObjects.length) {
+            continue;
+        }
 
-        const headers = Object.keys(allKeys);
+        const headers =
+            Object.keys(allKeys);
 
         if (!headersWritten) {
-          outputRows.push(headers);
-          headersWritten = true;
+
+            outputRows.push(
+                headers
+            );
+
+            headersWritten =
+                true;
         }
 
         batchObjects.forEach(obj => {
-          const row = headers.map(h => obj.hasOwnProperty(h) ? obj[h] : "");
-          outputRows.push(row);
+
+            const row =
+                headers.map(
+                    h =>
+                        obj.hasOwnProperty(h)
+                            ? obj[h]
+                            : ""
+                );
+
+            outputRows.push(row);
+
         });
-      }
-
-      const csv = outputRows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
-      document.getElementById("output").value = csv;
     }
 
-    function download() {
-      const csv = document.getElementById("output").value;
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "output.csv";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-  </script>
+    const csv =
+        outputRows
+            .map(r =>
+                r
+                    .map(v =>
+                        `"${String(v).replace(
+                            /"/g,
+                            '""'
+                        )}"`
+                    )
+                    .join(",")
+            )
+            .join("\n");
+
+    document.getElementById(
+        "output"
+    ).value = csv;
+}
+
+function download() {
+
+    const csv =
+        document.getElementById(
+            "output"
+        ).value;
+
+    const blob =
+        new Blob(
+            [csv],
+            {
+                type: "text/csv"
+            }
+        );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const a =
+        document.createElement("a");
+
+    a.href = url;
+
+    a.download =
+        "output.csv";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+
+</script>
+
 </body>
 </html>
