@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Danijel's Pages</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f6f8;
+            color: #222;
+        }
+
+        header {
+            background: #24292f;
+            color: white;
+            padding: 35px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+            font-size: 30px;
+        }
+
+        header p {
+            margin: 0;
+            opacity: 0.75;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .search {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            outline: none;
+        }
+
+        .search:focus {
+            border-color: #0969da;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: transform 0.15s, box-shadow 0.15s;
+            display: flex;
+            flex-direction: column;
+            min-height: 170px;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+        }
+
+        .card h2 {
+            margin: 0 0 10px;
+            font-size: 19px;
+            word-break: break-word;
+        }
+
+        .filename {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .open-button {
+            margin-top: auto;
+            display: block;
+            text-align: center;
+            padding: 10px;
+            background: #0969da;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .open-button:hover {
+            background: #0757b5;
+        }
+
+        .status {
+            text-align: center;
+            color: #666;
+            padding: 30px;
+        }
+
+        .error {
+            background: #ffebe9;
+            border: 1px solid #ff8182;
+            color: #82071e;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .count {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Danijel's Pages</h1>
+    <p>HTML tools and applications</p>
+</header>
+
+<div class="container">
+
+    <input
+        type="text"
+        id="search"
+        class="search"
+        placeholder="Search pages..."
+    >
+
+    <div id="count" class="count"></div>
+
+    <div id="pages" class="grid">
+        <div class="status">Loading pages...</div>
+    </div>
+
+</div>
+
+<script>
+    const OWNER = "danijelcecelja-svg";
+    const REPOSITORY = "javasciptpages";
+    const BRANCH = "main";
+
+    const PAGES_BASE =
+        `https://${OWNER}.github.io/${REPOSITORY}/`;
+
+    const API_URL =
+        `https://api.github.com/repos/${OWNER}/${REPOSITORY}/git/trees/${BRANCH}?recursive=1`;
+
+    let pages = [];
+
+    function createTitle(filename) {
+        return filename
+            .replace(/\.html$/i, "")
+            .replace(/[-_]/g, " ")
+            .replace(/\b\w/g, char => char.toUpperCase());
+    }
+
+    function renderPages(filter = "") {
+        const container = document.getElementById("pages");
+        const count = document.getElementById("count");
+
+        const filteredPages = pages.filter(page =>
+            page.filename.toLowerCase().includes(filter.toLowerCase()) ||
+            page.title.toLowerCase().includes(filter.toLowerCase())
+        );
+
+        count.textContent =
+            `${filteredPages.length} page${filteredPages.length === 1 ? "" : "s"}`;
+
+        if (filteredPages.length === 0) {
+            container.innerHTML =
+                `<div class="status">No pages found.</div>`;
+            return;
+        }
+
+        container.innerHTML = filteredPages.map(page => `
+            <div class="card">
+                <h2>${escapeHtml(page.title)}</h2>
+
+                <div class="filename">
+                    ${escapeHtml(page.filename)}
+                </div>
+
+                <a
+                    class="open-button"
+                    href="${page.url}"
+                >
+                    Open
+                </a>
+            </div>
+        `).join("");
+    }
+
+    function escapeHtml(value) {
+        return value
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    async function loadPages() {
+        try {
+            const response = await fetch(API_URL);
+
+            if (!response.ok) {
+                throw new Error(
+                    `GitHub API returned ${response.status}`
+                );
+            }
+
+            const data = await response.json();
+
+            pages = data.tree
+                .filter(item =>
+                    item.type === "blob" &&
+                    item.path.toLowerCase().endsWith(".html")
+                )
+                .filter(item =>
+                    item.path.toLowerCase() !== "index.html"
+                )
+                .map(item => ({
+                    filename: item.path,
+                    title: createTitle(item.path.split("/").pop()),
+                    url: PAGES_BASE + item.path
+                }))
+                .sort((a, b) =>
+                    a.title.localeCompare(b.title)
+                );
+
+            renderPages();
+
+        } catch (error) {
+            document.getElementById("pages").innerHTML = `
+                <div class="error">
+                    Unable to load the pages from GitHub.
+                    <br><br>
+                    ${escapeHtml(error.message)}
+                </div>
+            `;
+        }
+    }
+
+    document.getElementById("search").addEventListener("input", event => {
+        renderPages(event.target.value);
+    });
+
+    loadPages();
+</script>
+
+</body>
+</html>
