@@ -9,7 +9,7 @@ function convert() {
     const input = document.getElementById("input").value;
     const lines = input.split(/\r?\n/);
     const output = [];
-
+ 
     lines.forEach((line, index) => {
         output.push(convertLine(line, index + 1));
     });
