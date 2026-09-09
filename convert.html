@@ -1,128 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>Custom Converter</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f5f6f8;
-            color: #222;
-        }
-
-        header {
-            background: #24292f;
-            color: white;
-            padding: 35px 20px;
-            text-align: center;
-        }
-
-        header h1 {
-            margin: 0 0 8px;
-            font-size: 30px;
-        }
-
-        header p {
-            margin: 0;
-            opacity: 0.75;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-
-        .toolbar {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 25px;
-        }
-
-        button,
-        .link-button {
-            display: inline-block;
-            padding: 10px 18px;
-            border-radius: 6px;
-            border: none;
-            background: #0969da;
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        button:hover,
-        .link-button:hover {
-            background: #0757b5;
-        }
-
-        .link-button.secondary {
-            background: #57606a;
-        }
-
-        .link-button.secondary:hover {
-            background: #424a53;
-        }
-
-        .section {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-
-        .section h2 {
-            margin: 0 0 15px;
-            font-size: 19px;
-        }
-
-        textarea {
-            width: 100%;
-            min-height: 300px;
-            padding: 14px;
-            font-family: Consolas, "Courier New", monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            resize: vertical;
-            background: #fafbfc;
-            color: #222;
-            outline: none;
-        }
-
-        textarea:focus {
-            border-color: #0969da;
-            background: white;
-        }
-
-        #version {
-            text-align: center;
-            color: #666;
-            font-size: 13px;
-            padding: 10px 0 30px;
-        }
-
-        .arrow {
-            text-align: center;
-            font-size: 22px;
-            color: #777;
-            margin: -8px 0 12px;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
@@ -135,7 +20,10 @@
 <div class="container">
 
     <div class="toolbar">
-        <button onclick="convert()">Convert</button>
+
+        <button onclick="convert()">
+            Convert
+        </button>
 
         <a
             class="link-button secondary"
@@ -152,15 +40,18 @@
         >
             Code
         </a>
+
     </div>
 
     <div class="section">
+
         <h2>Input</h2>
 
         <textarea
             id="input"
             placeholder="Paste your input here"
         ></textarea>
+
     </div>
 
     <div class="arrow">
@@ -168,15 +59,22 @@
     </div>
 
     <div class="section">
+
         <h2>Output</h2>
 
         <textarea
             id="output"
             placeholder="Converted output will appear here"
         ></textarea>
+
     </div>
 
-    <div id="version"></div>
+    <div id="version">
+        Last modified:
+        <script>
+            document.write(document.lastModified);
+        </script>
+    </div>
 
 </div>
 
