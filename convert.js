@@ -14,5 +14,5 @@ function convert() {
         output.push(convertLine(line, index + 1));
     });
 
-    document.getElementById("output").value = output.join("\n");
+    document.getElementById("output").value = output.join("\r\n");
 }
