@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>WSE Converter</title>
+    <title>JSON → WSE Converter</title>
 
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,29 +14,23 @@
 <body>
 
 <header>
-    <h1>֍ WSE Converter ֍</h1>
-    <p>Transform WSE data</p>
+    <h1>֍ JSON → WSE Converter ֍</h1>
+    <p>Convert JSON lines directly to WSE import data</p>
 </header>
 
 <div class="container">
 
     <div class="toolbar">
-
-        <button onclick="convert()">
-            Convert
-        </button>
+        <button onclick="convert()">Convert</button>
+        <button onclick="download()">Download CSV</button>
     </div>
-     
 
     <div class="section">
-
-        <h2>Input</h2>
-
+        <h2>JSON Input</h2>
         <textarea
             id="input"
-            placeholder="Paste your aangeleverd data here"
+            placeholder="Paste your JSON lines here"
         ></textarea>
-
     </div>
 
     <div class="arrow">
@@ -43,23 +38,17 @@
     </div>
 
     <div class="section">
-
-        <h2>Output</h2>
-
+        <h2>WSE Output</h2>
         <textarea
             id="output"
-            placeholder="Converted output will appear here"
+            placeholder="Final WSE CSV output will appear here"
         ></textarea>
-
     </div>
-
-    
 
 </div>
 
 <script>
 
-const INPUT_DELIMITER = ",";
 const OUTPUT_DELIMITER = ",";
 
 const OUTPUT_HEADERS = [
@@ -85,48 +74,86 @@ const OUTPUT_HEADERS = [
     "VENDOR_PARTYNUMBER"
 ];
 
+function getJsonRecords(text) {
+
+    const lines = text
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+
+    const seenRegistraties = new Set();
+    const records = [];
+
+    for (let start = 0; start < lines.length; start += 1000) {
+
+        const batch = lines.slice(start, start + 1000);
+
+        batch.forEach(line => {
+
+            try {
+
+                const obj = JSON.parse(line);
+
+                let reg = obj["registratienummer"];
+                const vest = obj["vestigingsnummer"];
+
+                if (!reg || typeof reg !== "string") {
+                    return;
+                }
+
+                reg = reg.trim().toUpperCase();
+
+                if (!reg.startsWith("KDB") || seenRegistraties.has(reg)) {
+                    return;
+                }
+
+                if (!vest || String(vest).trim() === "") {
+                    return;
+                }
+
+                seenRegistraties.add(reg);
+
+                obj["registratienummer"] = reg;
+
+                records.push(obj);
+
+            } catch (e) {
+                throw new Error(
+                    "Invalid JSON on input line " +
+                    (start + batch.indexOf(line) + 1) +
+                    ": " + e.message
+                );
+            }
+
+        });
+
+    }
+
+    return records;
+}
+
 function parseCsvLine(line) {
 
     const values = [];
-
     let value = "";
-
     let insideQuotes = false;
 
-    for (
-        let i = 0;
-        i < line.length;
-        i++
-    ) {
+    for (let i = 0; i < line.length; i++) {
 
-        const character =
-            line[i];
+        const character = line[i];
 
         if (character === '"') {
 
-            if (
-                insideQuotes &&
-                line[i + 1] === '"'
-            ) {
-
+            if (insideQuotes && line[i + 1] === '"') {
                 value += '"';
-
                 i++;
-
             } else {
-
-                insideQuotes =
-                    !insideQuotes;
-
+                insideQuotes = !insideQuotes;
             }
 
-        } else if (
-            character === INPUT_DELIMITER &&
-            !insideQuotes
-        ) {
+        } else if (character === "," && !insideQuotes) {
 
             values.push(value);
-
             value = "";
 
         } else {
@@ -134,6 +161,7 @@ function parseCsvLine(line) {
             value += character;
 
         }
+
     }
 
     values.push(value);
@@ -141,22 +169,15 @@ function parseCsvLine(line) {
     return values;
 }
 
-function getValue(
-    columns,
-    columnIndex,
-    fieldName
-) {
+function getValue(obj, fieldName) {
 
-    const index =
-        columnIndex[fieldName];
+    const value = obj[fieldName];
 
-    if (index === undefined) {
+    if (value === null || value === undefined) {
         return "";
     }
 
-    return (
-        columns[index] || ""
-    ).trim();
+    return String(value).trim();
 }
 
 function convertDate(value) {
@@ -165,152 +186,85 @@ function convertDate(value) {
         return "";
     }
 
-    const parts =
-        value.split("/");
+    const parts = value.split("/");
 
     if (parts.length !== 3) {
         return value;
     }
 
-    const day =
-        parts[0].padStart(2, "0");
-
-    const month =
-        parts[1].padStart(2, "0");
-
-    const year =
-        parts[2];
+    const day = parts[0].padStart(2, "0");
+    const month = parts[1].padStart(2, "0");
+    const year = parts[2];
 
     return `${month}/${day}/${year} 00:00:00`;
 }
 
 function padVestigingsnummer(value) {
 
-    const cleaned =
-        String(value).trim();
+    const cleaned = String(value).trim();
 
     if (cleaned === "") {
         return "";
     }
 
-    return cleaned.padStart(
-        10,
-        "0"
-    );
+    return cleaned.padStart(10, "0");
 }
 
-function convertLine(
-    columns,
-    columnIndex
-) {
+function convertLine(obj) {
 
     const registratienummer =
-        getValue(
-            columns,
-            columnIndex,
-            "registratienummer"
-        );
+        getValue(obj, "registratienummer");
 
     const kwaliteitsbewijsType =
-        getValue(
-            columns,
-            columnIndex,
-            "kwaliteitsbewijs_type"
-        );
+        getValue(obj, "kwaliteitsbewijs_type");
 
     const kwaliteitsbewijsNaam =
-        getValue(
-            columns,
-            columnIndex,
-            "kwaliteitsbewijs_naam"
-        );
+        getValue(obj, "kwaliteitsbewijs_naam");
 
     const vestigingsnummer =
-        getValue(
-            columns,
-            columnIndex,
-            "vestigingsnummer"
-        );
+        getValue(obj, "vestigingsnummer");
 
     const registratieGeldigVan =
-        getValue(
-            columns,
-            columnIndex,
-            "registratie_geldig_van"
-        );
+        getValue(obj, "registratie_geldig_van");
 
     const registratieGeldigTot =
-        getValue(
-            columns,
-            columnIndex,
-            "registratie_geldig_tot"
-        );
+        getValue(obj, "registratie_geldig_tot");
 
     const registratieStatus =
-        getValue(
-            columns,
-            columnIndex,
-            "registratie_status"
-        );
+        getValue(obj, "registratie_status");
 
     const naamOnderneming =
-        getValue(
-            columns,
-            columnIndex,
-            "naam_onderneming"
-        );
+        getValue(obj, "naam_onderneming");
 
     const paddedVestigingsnummer =
-        padVestigingsnummer(
-            vestigingsnummer
-        );
+        padVestigingsnummer(vestigingsnummer);
 
-    let vendorName =
-        naamOnderneming;
+    let vendorName = naamOnderneming;
 
     if (
         vendorName === "" ||
         vendorName.toLowerCase() === "onbekend"
     ) {
-
-        vendorName =
-            "Naam onbekend";
-
+        vendorName = "Naam onbekend";
     } else {
-
-        vendorName =
-            vendorName.substring(
-                0,
-                160
-            );
+        vendorName = vendorName.substring(0, 160);
     }
 
     let certificationState = "";
 
-    switch (
-        registratieStatus.toLowerCase()
-    ) {
+    switch (registratieStatus.toLowerCase()) {
 
         case "actief":
-
-            certificationState =
-                "AC";
-
+            certificationState = "AC";
             break;
 
         case "niet actief":
         case "stopgezet":
-
-            certificationState =
-                "PA";
-
+            certificationState = "PA";
             break;
 
         default:
-
-            certificationState =
-                "";
-
+            certificationState = "";
             break;
     }
 
@@ -333,12 +287,8 @@ function convertLine(
         "",
         name,
         "",
-        convertDate(
-            registratieGeldigVan
-        ),
-        convertDate(
-            registratieGeldigTot
-        ),
+        convertDate(registratieGeldigVan),
+        convertDate(registratieGeldigTot),
         certificationState,
         vendorName,
         vestigingsnummer
@@ -347,30 +297,19 @@ function convertLine(
 
 function escapeCsvValue(value) {
 
-    if (
-        value === null ||
-        value === undefined
-    ) {
-
+    if (value === null || value === undefined) {
         return "";
     }
 
-    const stringValue =
-        String(value);
+    const stringValue = String(value);
 
     if (
-        stringValue.includes(
-            OUTPUT_DELIMITER
-        ) ||
+        stringValue.includes(OUTPUT_DELIMITER) ||
         stringValue.includes('"') ||
         stringValue.includes("\n") ||
         stringValue.includes("\r")
     ) {
-
-        return `"${stringValue.replace(
-            /"/g,
-            '""'
-        )}"`;
+        return `"${stringValue.replace(/"/g, '""')}"`;
     }
 
     return stringValue;
@@ -378,101 +317,84 @@ function escapeCsvValue(value) {
 
 function convert() {
 
-    const text =
-        document
-            .getElementById("input")
-            .value
-            .trim();
+    const input = document.getElementById("input").value;
+    const outputElement = document.getElementById("output");
 
-    if (!text) {
+    try {
 
-        document.getElementById(
-            "output"
-        ).value = "";
-
-        return;
-    }
-
-    const lines =
-        text.split(/\r?\n/);
-
-    const headers =
-        parseCsvLine(lines[0]);
-
-    const columnIndex = {};
-
-    headers.forEach(
-        (header, index) => {
-
-            columnIndex[
-                header.trim()
-            ] = index;
-
-        }
-    );
-
-    const outputRows = [];
-
-    outputRows.push(
-        OUTPUT_HEADERS
-    );
-
-    for (
-        let i = 1;
-        i < lines.length;
-        i++
-    ) {
-
-        if (!lines[i].trim()) {
-            continue;
+        if (!input.trim()) {
+            outputElement.value = "";
+            return;
         }
 
-        const columns =
-            parseCsvLine(lines[i]);
+        const records = getJsonRecords(input);
 
-        const outputRow =
-            convertLine(
-                columns,
-                columnIndex
-            );
+        const outputRows = [OUTPUT_HEADERS];
 
-        outputRows.push(
-            outputRow
-        );
-    }
+        records.forEach(obj => {
+            outputRows.push(convertLine(obj));
+        });
 
-    const output =
-        outputRows
+        const output = outputRows
             .map(row =>
                 row
-                    .map(value =>
-                        escapeCsvValue(value)
-                    )
+                    .map(escapeCsvValue)
                     .join(OUTPUT_DELIMITER)
             )
             .join("\r\n");
 
-    document.getElementById(
-        "output"
-    ).value = output;
+        outputElement.value = output;
+
+    } catch (e) {
+
+        outputElement.value = "";
+        alert(e.message);
+
+    }
+
+}
+
+function download() {
+
+    const csv = document.getElementById("output").value;
+
+    if (!csv) {
+        alert("Convert the input first.");
+        return;
+    }
+
+    const blob = new Blob(
+        [csv],
+        { type: "text/csv;charset=utf-8;" }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = "wse_output.csv";
+    a.click();
+
+    URL.revokeObjectURL(url);
+
 }
 
 </script>
+
 <div class="footer">
-  <div class="container">
-    <div class="controls">
+    <div class="container">
+        <div class="controls">
+            <div class="control-row">
+                <div class="toolbar">
 
-        <div class="control-row">
-
-      <div class="toolbar">
-             <a
+                    <a
                         class="link-button secondary"
                         href="https://chatgpt.com/c/6a3d066e-ec60-83eb-859d-f03c4c247fd4"
                         target="_blank"
                     >
                         Prompt
                     </a>
-            
+
                     <a
                         class="link-button secondary"
                         href="https://github.com/danijelcecelja-svg/javasciptpages"
@@ -480,6 +402,7 @@ function convert() {
                     >
                         Code
                     </a>
+
                     <a
                         class="link-button secondary"
                         href="https://danijelcecelja-svg.github.io/javasciptpages/index.html"
@@ -487,18 +410,20 @@ function convert() {
                     >
                         Home
                     </a>
-          
+
+                </div>
             </div>
-         
-      </div>  
         </div>
-     <div id="version">
+
+        <div id="version">
             Last modified:
             <script>
                 document.write(document.lastModified);
             </script>
         </div>
-      </div>  
+    </div>
 </div>
+
 </body>
 </html>
+```
