@@ -5,56 +5,212 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>JSON → WSE Converter</title>
+
+    <title>WSE Converter</title>
+
     <link rel="stylesheet" href="styles.css">
+
+    <style>
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .converter-section {
+            margin: 20px 0;
+        }
+
+        .converter-section h2 {
+            margin-bottom: 8px;
+        }
+
+        .converter-section textarea {
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 220px;
+            padding: 12px;
+            font-family: Consolas, monospace;
+            font-size: 13px;
+            resize: vertical;
+        }
+
+        #output {
+            min-height: 300px;
+        }
+
+        #newVendors {
+            min-height: 180px;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .toolbar button,
+        .link-button {
+            display: inline-block;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .primary {
+            background: #005a9e;
+            color: white;
+        }
+
+        .secondary {
+            background: #e5e5e5;
+            color: #222;
+        }
+
+        .confirm {
+            background: #217346;
+            color: white;
+        }
+
+        .danger {
+            background: #b42318;
+            color: white;
+        }
+
+        #cacheStatus {
+            margin: 12px 0;
+            padding: 10px;
+            background: #f2f2f2;
+            border-radius: 4px;
+            overflow-wrap: anywhere;
+        }
+
+        .help-text {
+            font-size: 13px;
+            margin: 8px 0;
+        }
+
+        .footer {
+            margin-top: 30px;
+        }
+
+        #version {
+            margin-top: 15px;
+            font-size: 12px;
+        }
+    </style>
 </head>
 
 <body>
 
 <header>
-    <h1>֍ JSON → WSE Converter ֍</h1>
-    <p>Convert JSON lines directly to WSE import data</p>
+    <div class="container">
+        <h1>WSE Converter</h1>
+        <p>Convert JSON-lines input to WSE CSV and prepare a JSON list of new vendor numbers.</p>
+    </div>
 </header>
 
-<div class="container">
+<main>
+    <div class="container">
 
-    <div class="toolbar">
-        <button onclick="convert()">Convert</button>
-        <button onclick="download()">Download CSV</button>
-    </div>
+        <div class="converter-section">
+            <h2>1. JSON input</h2>
+            <p class="help-text">
+                Paste one JSON object per line. Only records with a KDB registratienummer
+                and a non-empty vestigingsnummer are included in the CSV.
+            </p>
 
-    <div class="section">
-        <h2>JSON Input</h2>
-        <textarea id="input" placeholder="Paste your JSON lines here"></textarea>
-    </div>
-
-    <div class="arrow">↓</div>
-
-    <div class="section">
-        <h2>WSE Output</h2>
-        <textarea id="output" placeholder="Final WSE CSV output will appear here"></textarea>
-    </div>
-
-    <div class="section">
-        <h2>New Vendor Party Numbers — API Request Body</h2>
-        <p>JSON array of vendor party numbers not previously processed.</p>
-        <textarea id="newVendors" readonly placeholder="Convert to generate the request body"></textarea>
-        <div class="toolbar">
-            <button onclick="copyNewVendors()">Copy Request Body</button>
+            <textarea
+                id="input"
+                placeholder="Paste JSON-lines input here..."
+                spellcheck="false"
+            ></textarea>
         </div>
-        <p id="cacheStatus">Previously processed vendor numbers: loading...</p>
-        <div class="toolbar">
-            <button onclick="resetCache()">Reset Cache</button>
-        </div>
-    </div>
 
-</div>
+        <div class="toolbar">
+            <button class="primary" type="button" onclick="convert()">
+                Convert
+            </button>
+
+            <button class="secondary" type="button" onclick="download()">
+                Download CSV
+            </button>
+        </div>
+
+        <div class="converter-section">
+            <h2>2. WSE CSV output</h2>
+
+            <textarea
+                id="output"
+                readonly
+                spellcheck="false"
+                placeholder="The converted WSE CSV will appear here..."
+            ></textarea>
+        </div>
+
+        <div class="converter-section">
+            <h2>3. New vendor numbers</h2>
+
+            <p class="help-text">
+                This JSON array contains eligible vendor numbers starting with 2
+                that are not in the processed cache or enabled seed list.
+                Numbers remain pending until you explicitly confirm that they
+                have been processed in the database.
+            </p>
+
+            <textarea
+                id="newVendors"
+                readonly
+                spellcheck="false"
+            >[]</textarea>
+
+            <div class="toolbar">
+                <button class="secondary" type="button" onclick="copyNewVendors()">
+                    Copy JSON body
+                </button>
+
+                <button class="confirm" type="button" onclick="confirmProcessed()">
+                    Confirm processed
+                </button>
+            </div>
+
+            <p class="help-text">
+                Only click Confirm processed after you have successfully processed
+                the listed numbers in your separate database operation.
+            </p>
+        </div>
+
+        <div class="converter-section">
+            <h2>4. Vendor cache</h2>
+
+            <div id="cacheStatus">
+                Loading cache status...
+            </div>
+
+            <div class="toolbar">
+                <button class="danger" type="button" onclick="resetCache()">
+                    Reset processed cache
+                </button>
+            </div>
+
+            <p class="help-text">
+                Pending numbers are kept separately from the processed cache.
+                Resetting the processed cache does not clear pending numbers.
+                Seed numbers remain excluded while the seed list is enabled.
+            </p>
+        </div>
+
+    </div>
+</main>
 
 <script>
-
 const OUTPUT_DELIMITER = ",";
 const CACHE_KEY = "wse_processed_vendor_party_numbers_v1";
-
+const PENDING_KEY = "wse_pending_vendor_party_numbers_v1";
 const USE_SEED_NUMBERS = true;
 
 const SEED_VENDOR_NUMBERS = `
@@ -188,40 +344,49 @@ function getSeedNumbers() {
     }
 
     return new Set(
-        SEED_VENDOR_NUMBERS
-            .trim()
-            .split(/\s+/)
-            .filter(Boolean)
+        SEED_VENDOR_NUMBERS.trim().split(/\s+/).filter(Boolean)
     );
 }
 
-function loadCache() {
-    const stored = localStorage.getItem(CACHE_KEY);
+function loadSet(key) {
+    const stored = localStorage.getItem(key);
     const values = stored ? JSON.parse(stored) : [];
 
     if (!Array.isArray(values)) {
-        throw new Error("Invalid vendor cache format.");
+        throw new Error("Invalid cache format for " + key);
     }
 
     return new Set(values.map(String));
 }
 
-function saveCache(values) {
-    localStorage.setItem(CACHE_KEY, JSON.stringify([...values]));
+function saveSet(key, values) {
+    localStorage.setItem(key, JSON.stringify([...values]));
+}
+
+function loadCache() {
+    return loadSet(CACHE_KEY);
+}
+
+function loadPending() {
+    return loadSet(PENDING_KEY);
+}
+
+function renderPending() {
+    document.getElementById("newVendors").value =
+        JSON.stringify([...loadPending()], null, 2);
 }
 
 function updateCacheStatus() {
-    try {
-        const cache = loadCache();
-        const seeds = getSeedNumbers();
+    const status = document.getElementById("cacheStatus");
 
-        document.getElementById("cacheStatus").textContent =
-            "Cached vendor numbers: " + cache.size +
-            " | Seed numbers skipped: " + seeds.size +
+    try {
+        status.textContent =
+            "Processed vendor numbers: " + loadCache().size +
+            " | Pending vendor numbers: " + loadPending().size +
+            " | Seed numbers skipped: " + getSeedNumbers().size +
             " | Seed list enabled: " + USE_SEED_NUMBERS;
     } catch (e) {
-        document.getElementById("cacheStatus").textContent =
-            "Cache error: " + e.message;
+        status.textContent = "Cache error: " + e.message;
     }
 }
 
@@ -401,71 +566,81 @@ function escapeCsvValue(value) {
 function convert() {
     const input = document.getElementById("input").value;
     const outputElement = document.getElementById("output");
-    const vendorsElement = document.getElementById("newVendors");
 
     try {
-        if (!input.trim()) {
-            outputElement.value = "";
-            vendorsElement.value = "";
-            return;
-        }
-
-        const records = getJsonRecords(input);
+        const records = input.trim() ? getJsonRecords(input) : [];
         const processedNumbers = loadCache();
         const seedNumbers = getSeedNumbers();
+        const pendingNumbers = loadPending();
 
         const outputRows = [OUTPUT_HEADERS];
-        const newNumbers = new Set();
-        const allNumbersSeen = new Set();
 
         records.forEach(obj => {
             outputRows.push(convertLine(obj));
 
             const vendorNumber = getValue(obj, "vestigingsnummer");
 
-            if (vendorNumber === "") {
+            if (
+                vendorNumber === "" ||
+                !vendorNumber.startsWith("2") ||
+                processedNumbers.has(vendorNumber) ||
+                seedNumbers.has(vendorNumber)
+            ) {
                 return;
             }
 
-            allNumbersSeen.add(vendorNumber);
-
-            if (
-                !processedNumbers.has(vendorNumber) &&
-                !seedNumbers.has(vendorNumber)
-            ) {
-                newNumbers.add(vendorNumber);
-            }
+            pendingNumbers.add(vendorNumber);
         });
 
         const output = outputRows
-            .map(row =>
-                row
-                    .map(escapeCsvValue)
-                    .join(OUTPUT_DELIMITER)
-            )
+            .map(row => row.map(escapeCsvValue).join(OUTPUT_DELIMITER))
             .join("\r\n");
 
-        const requestBody = JSON.stringify([...newNumbers], null, 2);
+        saveSet(PENDING_KEY, pendingNumbers);
 
         outputElement.value = output;
-        vendorsElement.value = requestBody;
-
-        const updatedCache = new Set([
-            ...processedNumbers,
-            ...allNumbersSeen
-        ]);
-
-        saveCache(updatedCache);
+        renderPending();
         updateCacheStatus();
 
     } catch (e) {
-        outputElement.value = "";
-        vendorsElement.value = "";
+        alert("Conversion failed: " + e.message);
+    }
+}
 
-        alert(
-            "Conversion failed. The cache was not intentionally updated.\n" +
-            e.message
+function confirmProcessed() {
+    try {
+        const pendingNumbers = loadPending();
+
+        if (pendingNumbers.size === 0) {
+            alert("There are no pending vendor numbers to confirm.");
+            return;
+        }
+
+        const confirmed = confirm(
+            "Confirm that all " + pendingNumbers.size +
+            " listed vendor numbers have been successfully processed in the database?"
         );
+
+        if (!confirmed) {
+            return;
+        }
+
+        const processedNumbers = loadCache();
+
+        pendingNumbers.forEach(number => {
+            processedNumbers.add(number);
+        });
+
+        saveSet(CACHE_KEY, processedNumbers);
+        saveSet(PENDING_KEY, new Set());
+
+        renderPending();
+        updateCacheStatus();
+
+        alert("The listed vendor numbers have been marked as processed.");
+
+    } catch (e) {
+        alert("Unable to confirm processed numbers: " + e.message);
     }
 }
 
@@ -487,7 +662,9 @@ function download() {
 
     a.href = url;
     a.download = "wse_output.csv";
+    document.body.appendChild(a);
     a.click();
+    a.remove();
 
     URL.revokeObjectURL(url);
 }
@@ -495,8 +672,8 @@ function download() {
 async function copyNewVendors() {
     const text = document.getElementById("newVendors").value;
 
-    if (!text) {
-        alert("Convert the input first.");
+    if (!text || text === "[]") {
+        alert("There are no pending vendor numbers to copy.");
         return;
     }
 
@@ -512,7 +689,7 @@ async function copyNewVendors() {
 
 function resetCache() {
     const confirmed = confirm(
-        "Clear the saved vendor cache? Seed numbers will still be skipped if enabled."
+        "Clear the processed vendor cache? Pending numbers will be kept, and seed numbers will still be skipped if enabled."
     );
 
     if (!confirmed) {
@@ -521,46 +698,44 @@ function resetCache() {
 
     try {
         localStorage.removeItem(CACHE_KEY);
-        document.getElementById("newVendors").value = "";
         updateCacheStatus();
     } catch (e) {
-        alert("Unable to reset the cache: " + e.message);
+        alert("Unable to reset the processed cache: " + e.message);
     }
 }
 
-updateCacheStatus();
+try {
+    renderPending();
+} catch (e) {
+    document.getElementById("newVendors").value = "[]";
+}
 
+updateCacheStatus();
 </script>
 
 <div class="footer">
     <div class="container">
-        <div class="controls">
-            <div class="control-row">
-                <div class="toolbar">
+        <div class="toolbar">
+            <a
+                class="link-button secondary"
+                href="https://chatgpt.com/c/6a3d066e-ec60-83eb-859d-f03c4c247fd4"
+                target="_blank"
+                rel="noopener noreferrer"
+            >Prompt</a>
 
-                    <a
-                        class="link-button secondary"
-                        href="https://chatgpt.com/c/6a3d066e-ec60-83eb-859d-f03c4c247fd4"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >Prompt</a>
+            <a
+                class="link-button secondary"
+                href="https://github.com/danijelcecelja-svg/javasciptpages"
+                target="_blank"
+                rel="noopener noreferrer"
+            >Code</a>
 
-                    <a
-                        class="link-button secondary"
-                        href="https://github.com/danijelcecelja-svg/javasciptpages"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >Code</a>
-
-                    <a
-                        class="link-button secondary"
-                        href="https://danijelcecelja-svg.github.io/javasciptpages/index.html"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >Home</a>
-
-                </div>
-            </div>
+            <a
+                class="link-button secondary"
+                href="https://danijelcecelja-svg.github.io/javasciptpages/index.html"
+                target="_blank"
+                rel="noopener noreferrer"
+            >Home</a>
         </div>
 
         <div id="version">
