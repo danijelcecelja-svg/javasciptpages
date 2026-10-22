@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -36,21 +36,16 @@
     </div>
 
     <div class="section">
-        <h2>New Vendor Party Numbers</h2>
-        <p>Numbers not yet confirmed as processed by the API.</p>
-        <textarea id="newVendors" readonly placeholder="New vendor numbers will appear here"></textarea>
+        <h2>New Vendor Party Numbers — API Request Body</h2>
+        <p>JSON array of vendor party numbers not previously processed.</p>
+        <textarea id="newVendors" readonly placeholder="Convert to generate the request body"></textarea>
         <div class="toolbar">
-            <button onclick="copyNewVendors()">Copy JSON</button>
+            <button onclick="copyNewVendors()">Copy Request Body</button>
+        </div>
+        <p id="cacheStatus">Previously processed vendor numbers: loading...</p>
+        <div class="toolbar">
             <button onclick="resetCache()">Reset Cache</button>
         </div>
-        <p id="cacheStatus">Previously processed vendor numbers: 0</p>
-    </div>
-
-    <div class="section">
-        <h2>API Request</h2>
-        <p>Send the new vendor party numbers to the API.</p>
-        <button onclick="sendApiRequest()">Send New Vendor Numbers</button>
-        <p id="apiStatus">API endpoint must be configured before sending.</p>
     </div>
 
 </div>
@@ -60,7 +55,109 @@
 const OUTPUT_DELIMITER = ",";
 const CACHE_KEY = "wse_processed_vendor_party_numbers_v1";
 
-const API_URL = "";
+const USE_SEED_NUMBERS = true;
+
+const SEED_VENDOR_NUMBERS = `
+2290249974 2253268923 2146774009 2146777472 2146774207
+2146775195 2146777373 2336487597 2324085356 2217383772
+2138220290 2152791373 2263923481 2169247820 2153149976
+2153840458 2174710009 2148022636 2144272991 2169411136
+2165008722 2180819425 2168086392 2167150046 2144744333
+2147617909 2165650110 2167309897 2167309701 2150461096
+2225566911 2151438917 2234547923 2172317671 2224148434
+2167191024 2187780758 2156617628 2144742155 2233424703
+2167146383 2162264513 2361636531 2159889793 2333518310
+2277518923 2342396184 2154270228 2154222619 2263265861
+2146773811 2146774504 2146774801 2147397876 2169279987
+2143479175 2167145492 2319722732 2273567657 2169357488
+2167304355 2167076406 2255753707 2267088948 2309006509
+2193975593 2156226559 2138222468 2138221973 2154445818
+2290211174 2333517419 2157825475 2244598212 2236758038
+2282191848 2167305543 2182931847 2182928976 2169286422
+2167298912 2167298813 2167298714 2167297526 2167297427
+2167297823 2167297625 2167297922 2160108836 2167297328
+2167298120 2169377383 2151923719 2167108771 2167205474
+2167211414 2286403925 2159656597 2237246503 2138502976
+2268872560 2153802351 2154255281 2144807679 2204293722
+2153069903 2023250051 2151930647 2148494570 2147434894
+2148569794 2154178671 2152344975 2153470670 2154177978
+2154176691 2153746329 2154177483 2148527729 2152419904
+2153377333 2154174812 2152938358 2154174020 2154177780
+2144738294 2138225933 2154177681 2154172931 2304780574
+2151546409 2150743881 2138225735 2144817379 2154179760
+2144640108 2320040654 2152920047 2305343768 2154176889
+2154176592 2154176097 2154175109 2255746381 2146603466
+2148502488 2154173426 2154176493 2153114344 2144838363
+2153837290 2148502290 2154173525 2154175901 2154479272
+2154173822 2154284381 2255753212 2154485806 2154175406
+2147445881 2147558521 2270083476 2153953591 2255754202
+2144800949 2154249937 2154254687 2154249244 2269085168
+2153081581 2252608729 2154180948 2153379313 2144804216
+2144737108 2154190846 2154208365 2167253875 2167220916
+2167313857 2167220619 2169232774 2167313758 2258843552
+2301240668 2332434284 2160027177 2158057384 2330628896
+2320036595 2183147227 2169340068 2169329378 2169231784
+2167218936 2167134507 2158856150 2154257855 2192349557
+2183155343 2152488297 2152628651 2144816290 2154281017
+2148635914 2154253204 2154254984 2138219696 2138219104
+2193567106 2318231803 2318025628 2321018176 2160425471
+2169301961 2169341850 2169293251 2167298615 2212974133
+2212973242 2148365007 2169314631 2167213194 2235337086
+2167201615 2169326707 2169227034 2169425289 2212964928
+2212883665 2169291073 2167148759 2167291883 2167177364
+2169261379 2167297724 2167193103 2167080463 2212960275
+2169286125 2169286026 2212949486 2169281868 2169285828
+2167296041 2167150937 2167076208 2169238219 2273542517
+2169285135 2167252786 2167252390 2152515221 2167252687
+2167253182 2167251994 2169417470 2167253677 2167252588
+2169282363 2174100392 2169282957 2143477294 2169358478
+2167990778 2169280581 2167186569 2167135002 2167211117
+2212958196 2169413017 2169281175 2169235249 2169237625
+2169254154 2167222302 2169226044 2212881685 2169281670
+2169280383 2169288697 2167076109 2169247325 2168091144
+2169278801 2169278504 2167303563 2169328982 2167305048
+2169225747 2169274742 2167301583 2167241405 2169277910
+2167134210 2167301385 2169236932 2169249602 2167134111
+2169326311 2169343731 2169410245 2169235744 2167076010
+2169307802 2169271376 2169231487 2167300395 2169271079
+2169329873 2169311562 2169235942 2169293548 2167147373
+2167076307 2167916247 2169237922 2167205276 2167246254
+2169233467 2169234853 2169233764 2169233368 2169333536
+2167313560 2167260706 2169237229 2167074624 2167267436
+2167287727 2169315918 2167075416 2169326905 2212962057
+2169316809 2167131834 2169312057 2167308612 2167108474
+2167219530 2167219431 2167219134 2167218837 2167220322
+2167220223 2229434835 2225302338 2167288123 2169230004
+2169251382 2167108672 2169273950 2154207870 2150802576
+2305349015 2156590310 2157473109 2157483502 2157485480
+2157473703 2150886512 2157484094 2157556647 2157483205
+2144896959 2138458040 2216902435 2152717139 2157480334
+2160318969 2138314520 2138314421 2138314322 2138314223
+2138314124 2138314025 2138313926 2138313827 2156617826
+2150870575 2157484589 2157472317 2157484193 2157473505
+2152359526 2150859786 2156624358 2157473802 2144741759
+2157482512 2148566133 2157482314 2144767196 2148506448
+2148532182 2157481819 2144782440 2148540595 2148500015
+2144641492 2144787784 2144803325 2157481225 2148499421
+2144745224 2157481027 2157480829 2157485282 2157485183
+2157472218 2157558924 2157485381 2289076076 2255592468
+2244605536 2244528827 2217754451 2154294180 2152482755
+2278928292 2148526541 2154295467 2144767592 2154240633
+2154240534 2154240435 2154234891 2148635518 2152728918
+2154221332 2154220639 2154202031 2153081977 2154184512
+2154183522 2154180651 2314753560 2267081723 2296523104
+2296523203 2296523005 2214486244 2057695840 2069061567
+2151718039 2150089528 2150089429 2242009993 2195834134
+2172066857 2283609830 2218117113 2151615495 2315190753
+2249772072 2246180696 2296523302 2204607981 2310830703
+2262602402 2138222171 2257610761 2138221577 2277458941
+2259309647 2160802088 2252286055 2138221082 2218800170
+2091600211 2277501996 2167004546 2227140388 2230558847
+2218717028 2223814971 2219801646 2082572182 2250961511
+2220431552 2246971841 2159767554 2160518909 2163385951
+2248354090 2271937364 2282139685 2271971414 2101028611
+2176550534 2177016035 2262057519 2161284120 2268841381
+`;
 
 const OUTPUT_HEADERS = [
     "UNIQUERECORDID",
@@ -85,53 +182,50 @@ const OUTPUT_HEADERS = [
     "VENDOR_PARTYNUMBER"
 ];
 
-let pendingVendorNumbers = [];
-let conversionCompleted = false;
-
-function loadCache() {
-
-    try {
-        const stored = localStorage.getItem(CACHE_KEY);
-        const values = stored ? JSON.parse(stored) : [];
-
-        if (!Array.isArray(values)) {
-            throw new Error("Invalid cache format.");
-        }
-
-        return new Set(values.map(String));
-
-    } catch (e) {
-        throw new Error("Unable to read the vendor cache: " + e.message);
+function getSeedNumbers() {
+    if (!USE_SEED_NUMBERS) {
+        return new Set();
     }
 
+    return new Set(
+        SEED_VENDOR_NUMBERS
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean)
+    );
+}
+
+function loadCache() {
+    const stored = localStorage.getItem(CACHE_KEY);
+    const values = stored ? JSON.parse(stored) : [];
+
+    if (!Array.isArray(values)) {
+        throw new Error("Invalid vendor cache format.");
+    }
+
+    return new Set(values.map(String));
 }
 
 function saveCache(values) {
-
-    try {
-        localStorage.setItem(
-            CACHE_KEY,
-            JSON.stringify([...values])
-        );
-    } catch (e) {
-        throw new Error("Unable to save the vendor cache: " + e.message);
-    }
-
+    localStorage.setItem(CACHE_KEY, JSON.stringify([...values]));
 }
 
 function updateCacheStatus() {
-
     try {
-        document.getElementById("cacheStatus").textContent =
-            "Previously processed vendor numbers: " + loadCache().size;
-    } catch (e) {
-        document.getElementById("cacheStatus").textContent = e.message;
-    }
+        const cache = loadCache();
+        const seeds = getSeedNumbers();
 
+        document.getElementById("cacheStatus").textContent =
+            "Cached vendor numbers: " + cache.size +
+            " | Seed numbers skipped: " + seeds.size +
+            " | Seed list enabled: " + USE_SEED_NUMBERS;
+    } catch (e) {
+        document.getElementById("cacheStatus").textContent =
+            "Cache error: " + e.message;
+    }
 }
 
 function getJsonRecords(text) {
-
     const lines = text
         .split(/\r?\n/)
         .map(line => line.trim())
@@ -141,7 +235,6 @@ function getJsonRecords(text) {
     const records = [];
 
     for (let i = 0; i < lines.length; i++) {
-
         let obj;
 
         try {
@@ -165,22 +258,23 @@ function getJsonRecords(text) {
             continue;
         }
 
-        if (vest === null || vest === undefined || String(vest).trim() === "") {
+        if (
+            vest === null ||
+            vest === undefined ||
+            String(vest).trim() === ""
+        ) {
             continue;
         }
 
         seenRegistraties.add(reg);
         obj["registratienummer"] = reg;
-
         records.push(obj);
-
     }
 
     return records;
 }
 
 function getValue(obj, fieldName) {
-
     const value = obj[fieldName];
 
     if (value === null || value === undefined) {
@@ -188,11 +282,9 @@ function getValue(obj, fieldName) {
     }
 
     return String(value).trim();
-
 }
 
 function convertDate(value) {
-
     if (!value) {
         return "";
     }
@@ -208,11 +300,9 @@ function convertDate(value) {
     const year = parts[2];
 
     return `${month}/${day}/${year} 00:00:00`;
-
 }
 
 function padVestigingsnummer(value) {
-
     const cleaned = String(value).trim();
 
     if (cleaned === "") {
@@ -220,37 +310,19 @@ function padVestigingsnummer(value) {
     }
 
     return cleaned.padStart(10, "0");
-
 }
 
 function convertLine(obj) {
+    const registratienummer = getValue(obj, "registratienummer");
+    const kwaliteitsbewijsType = getValue(obj, "kwaliteitsbewijs_type");
+    const kwaliteitsbewijsNaam = getValue(obj, "kwaliteitsbewijs_naam");
+    const vestigingsnummer = getValue(obj, "vestigingsnummer");
+    const registratieGeldigVan = getValue(obj, "registratie_geldig_van");
+    const registratieGeldigTot = getValue(obj, "registratie_geldig_tot");
+    const registratieStatus = getValue(obj, "registratie_status");
+    const naamOnderneming = getValue(obj, "naam_onderneming");
 
-    const registratienummer =
-        getValue(obj, "registratienummer");
-
-    const kwaliteitsbewijsType =
-        getValue(obj, "kwaliteitsbewijs_type");
-
-    const kwaliteitsbewijsNaam =
-        getValue(obj, "kwaliteitsbewijs_naam");
-
-    const vestigingsnummer =
-        getValue(obj, "vestigingsnummer");
-
-    const registratieGeldigVan =
-        getValue(obj, "registratie_geldig_van");
-
-    const registratieGeldigTot =
-        getValue(obj, "registratie_geldig_tot");
-
-    const registratieStatus =
-        getValue(obj, "registratie_status");
-
-    const naamOnderneming =
-        getValue(obj, "naam_onderneming");
-
-    const paddedVestigingsnummer =
-        padVestigingsnummer(vestigingsnummer);
+    const paddedVestigingsnummer = padVestigingsnummer(vestigingsnummer);
 
     let vendorName = naamOnderneming;
 
@@ -266,7 +338,6 @@ function convertLine(obj) {
     let certificationState = "";
 
     switch (registratieStatus.toLowerCase()) {
-
         case "actief":
             certificationState = "AC";
             break;
@@ -306,11 +377,9 @@ function convertLine(obj) {
         vendorName,
         vestigingsnummer
     ];
-
 }
 
 function escapeCsvValue(value) {
-
     if (value === null || value === undefined) {
         return "";
     }
@@ -327,45 +396,45 @@ function escapeCsvValue(value) {
     }
 
     return stringValue;
-
 }
 
 function convert() {
-
     const input = document.getElementById("input").value;
     const outputElement = document.getElementById("output");
     const vendorsElement = document.getElementById("newVendors");
-    const apiStatus = document.getElementById("apiStatus");
 
     try {
-
         if (!input.trim()) {
             outputElement.value = "";
             vendorsElement.value = "";
-            pendingVendorNumbers = [];
-            conversionCompleted = false;
             return;
         }
 
         const records = getJsonRecords(input);
         const processedNumbers = loadCache();
+        const seedNumbers = getSeedNumbers();
 
         const outputRows = [OUTPUT_HEADERS];
         const newNumbers = new Set();
+        const allNumbersSeen = new Set();
 
         records.forEach(obj => {
-
             outputRows.push(convertLine(obj));
 
             const vendorNumber = getValue(obj, "vestigingsnummer");
 
+            if (vendorNumber === "") {
+                return;
+            }
+
+            allNumbersSeen.add(vendorNumber);
+
             if (
-                vendorNumber !== "" &&
-                !processedNumbers.has(vendorNumber)
+                !processedNumbers.has(vendorNumber) &&
+                !seedNumbers.has(vendorNumber)
             ) {
                 newNumbers.add(vendorNumber);
             }
-
         });
 
         const output = outputRows
@@ -376,31 +445,31 @@ function convert() {
             )
             .join("\r\n");
 
-        pendingVendorNumbers = [...newNumbers];
-        conversionCompleted = true;
+        const requestBody = JSON.stringify([...newNumbers], null, 2);
 
         outputElement.value = output;
-        vendorsElement.value = JSON.stringify(pendingVendorNumbers, null, 2);
+        vendorsElement.value = requestBody;
 
-        apiStatus.textContent =
-            pendingVendorNumbers.length +
-            " new vendor numbers ready for the API request.";
+        const updatedCache = new Set([
+            ...processedNumbers,
+            ...allNumbersSeen
+        ]);
+
+        saveCache(updatedCache);
+        updateCacheStatus();
 
     } catch (e) {
-
         outputElement.value = "";
         vendorsElement.value = "";
-        pendingVendorNumbers = [];
-        conversionCompleted = false;
 
-        alert(e.message);
-
+        alert(
+            "Conversion failed. The cache was not intentionally updated.\n" +
+            e.message
+        );
     }
-
 }
 
 function download() {
-
     const csv = document.getElementById("output").value;
 
     if (!csv) {
@@ -421,11 +490,9 @@ function download() {
     a.click();
 
     URL.revokeObjectURL(url);
-
 }
 
 async function copyNewVendors() {
-
     const text = document.getElementById("newVendors").value;
 
     if (!text) {
@@ -436,86 +503,16 @@ async function copyNewVendors() {
     try {
         await navigator.clipboard.writeText(text);
     } catch (e) {
-        document.getElementById("newVendors").focus();
-        document.getElementById("newVendors").select();
+        const textarea = document.getElementById("newVendors");
+        textarea.focus();
+        textarea.select();
         alert("Automatic copying failed. Copy the selected text manually.");
     }
-
-}
-
-async function sendApiRequest() {
-
-    const status = document.getElementById("apiStatus");
-
-    if (!conversionCompleted) {
-        status.textContent = "Convert the input before sending a request.";
-        return;
-    }
-
-    if (!API_URL) {
-        status.textContent =
-            "API_URL is empty. Configure the actual API endpoint in the script.";
-        return;
-    }
-
-    if (pendingVendorNumbers.length === 0) {
-        status.textContent = "No new vendor numbers to send.";
-        return;
-    }
-
-    const numbersToSend = [...pendingVendorNumbers];
-
-    status.textContent = "Sending request...";
-
-    try {
-
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(numbersToSend)
-        });
-
-        if (!response.ok) {
-            throw new Error("HTTP " + response.status);
-        }
-
-        const processedNumbers = loadCache();
-
-        numbersToSend.forEach(number => {
-            processedNumbers.add(number);
-        });
-
-        saveCache(processedNumbers);
-
-        pendingVendorNumbers = pendingVendorNumbers.filter(
-            number => !processedNumbers.has(number)
-        );
-
-        document.getElementById("newVendors").value =
-            JSON.stringify(pendingVendorNumbers, null, 2);
-
-        updateCacheStatus();
-
-        status.textContent =
-            "Request successful. " +
-            numbersToSend.length +
-            " vendor numbers marked as processed.";
-
-    } catch (e) {
-
-        status.textContent =
-            "Request failed. Vendor cache was not updated: " + e.message;
-
-    }
-
 }
 
 function resetCache() {
-
     const confirmed = confirm(
-        "Clear all cached vendor numbers? All numbers will be treated as new again."
+        "Clear the saved vendor cache? Seed numbers will still be skipped if enabled."
     );
 
     if (!confirmed) {
@@ -523,21 +520,12 @@ function resetCache() {
     }
 
     try {
-
         localStorage.removeItem(CACHE_KEY);
-        pendingVendorNumbers = [];
-        conversionCompleted = false;
-
         document.getElementById("newVendors").value = "";
-        document.getElementById("apiStatus").textContent =
-            "Cache reset. Convert the input again.";
-
         updateCacheStatus();
-
     } catch (e) {
         alert("Unable to reset the cache: " + e.message);
     }
-
 }
 
 updateCacheStatus();
@@ -554,18 +542,21 @@ updateCacheStatus();
                         class="link-button secondary"
                         href="https://chatgpt.com/c/6a3d066e-ec60-83eb-859d-f03c4c247fd4"
                         target="_blank"
+                        rel="noopener noreferrer"
                     >Prompt</a>
 
                     <a
                         class="link-button secondary"
                         href="https://github.com/danijelcecelja-svg/javasciptpages"
                         target="_blank"
+                        rel="noopener noreferrer"
                     >Code</a>
 
                     <a
                         class="link-button secondary"
                         href="https://danijelcecelja-svg.github.io/javasciptpages/index.html"
                         target="_blank"
+                        rel="noopener noreferrer"
                     >Home</a>
 
                 </div>
@@ -583,3 +574,4 @@ updateCacheStatus();
 
 </body>
 </html>
+```
