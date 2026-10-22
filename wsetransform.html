@@ -1,12 +1,11 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>JSON → WSE Converter</title>
-
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -26,22 +25,32 @@
 
     <div class="section">
         <h2>JSON Input</h2>
-        <textarea
-            id="input"
-            placeholder="Paste your JSON lines here"
-        ></textarea>
+        <textarea id="input" placeholder="Paste your JSON lines here"></textarea>
     </div>
 
-    <div class="arrow">
-        ↓
-    </div>
+    <div class="arrow">↓</div>
 
     <div class="section">
         <h2>WSE Output</h2>
-        <textarea
-            id="output"
-            placeholder="Final WSE CSV output will appear here"
-        ></textarea>
+        <textarea id="output" placeholder="Final WSE CSV output will appear here"></textarea>
+    </div>
+
+    <div class="section">
+        <h2>New Vendor Party Numbers</h2>
+        <p>Numbers not yet confirmed as processed by the API.</p>
+        <textarea id="newVendors" readonly placeholder="New vendor numbers will appear here"></textarea>
+        <div class="toolbar">
+            <button onclick="copyNewVendors()">Copy JSON</button>
+            <button onclick="resetCache()">Reset Cache</button>
+        </div>
+        <p id="cacheStatus">Previously processed vendor numbers: 0</p>
+    </div>
+
+    <div class="section">
+        <h2>API Request</h2>
+        <p>Send the new vendor party numbers to the API.</p>
+        <button onclick="sendApiRequest()">Send New Vendor Numbers</button>
+        <p id="apiStatus">API endpoint must be configured before sending.</p>
     </div>
 
 </div>
@@ -49,6 +58,9 @@
 <script>
 
 const OUTPUT_DELIMITER = ",";
+const CACHE_KEY = "wse_processed_vendor_party_numbers_v1";
+
+const API_URL = "";
 
 const OUTPUT_HEADERS = [
     "UNIQUERECORDID",
@@ -73,6 +85,51 @@ const OUTPUT_HEADERS = [
     "VENDOR_PARTYNUMBER"
 ];
 
+let pendingVendorNumbers = [];
+let conversionCompleted = false;
+
+function loadCache() {
+
+    try {
+        const stored = localStorage.getItem(CACHE_KEY);
+        const values = stored ? JSON.parse(stored) : [];
+
+        if (!Array.isArray(values)) {
+            throw new Error("Invalid cache format.");
+        }
+
+        return new Set(values.map(String));
+
+    } catch (e) {
+        throw new Error("Unable to read the vendor cache: " + e.message);
+    }
+
+}
+
+function saveCache(values) {
+
+    try {
+        localStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify([...values])
+        );
+    } catch (e) {
+        throw new Error("Unable to save the vendor cache: " + e.message);
+    }
+
+}
+
+function updateCacheStatus() {
+
+    try {
+        document.getElementById("cacheStatus").textContent =
+            "Previously processed vendor numbers: " + loadCache().size;
+    } catch (e) {
+        document.getElementById("cacheStatus").textContent = e.message;
+    }
+
+}
+
 function getJsonRecords(text) {
 
     const lines = text
@@ -83,89 +140,43 @@ function getJsonRecords(text) {
     const seenRegistraties = new Set();
     const records = [];
 
-    for (let start = 0; start < lines.length; start += 1000) {
+    for (let i = 0; i < lines.length; i++) {
 
-        const batch = lines.slice(start, start + 1000);
+        let obj;
 
-        batch.forEach(line => {
+        try {
+            obj = JSON.parse(lines[i]);
+        } catch (e) {
+            throw new Error(
+                "Invalid JSON on input line " + (i + 1) + ": " + e.message
+            );
+        }
 
-            try {
+        let reg = obj["registratienummer"];
+        const vest = obj["vestigingsnummer"];
 
-                const obj = JSON.parse(line);
+        if (!reg || typeof reg !== "string") {
+            continue;
+        }
 
-                let reg = obj["registratienummer"];
-                const vest = obj["vestigingsnummer"];
+        reg = reg.trim().toUpperCase();
 
-                if (!reg || typeof reg !== "string") {
-                    return;
-                }
+        if (!reg.startsWith("KDB") || seenRegistraties.has(reg)) {
+            continue;
+        }
 
-                reg = reg.trim().toUpperCase();
+        if (vest === null || vest === undefined || String(vest).trim() === "") {
+            continue;
+        }
 
-                if (!reg.startsWith("KDB") || seenRegistraties.has(reg)) {
-                    return;
-                }
+        seenRegistraties.add(reg);
+        obj["registratienummer"] = reg;
 
-                if (!vest || String(vest).trim() === "") {
-                    return;
-                }
-
-                seenRegistraties.add(reg);
-
-                obj["registratienummer"] = reg;
-
-                records.push(obj);
-
-            } catch (e) {
-                throw new Error(
-                    "Invalid JSON on input line " +
-                    (start + batch.indexOf(line) + 1) +
-                    ": " + e.message
-                );
-            }
-
-        });
+        records.push(obj);
 
     }
 
     return records;
-}
-
-function parseCsvLine(line) {
-
-    const values = [];
-    let value = "";
-    let insideQuotes = false;
-
-    for (let i = 0; i < line.length; i++) {
-
-        const character = line[i];
-
-        if (character === '"') {
-
-            if (insideQuotes && line[i + 1] === '"') {
-                value += '"';
-                i++;
-            } else {
-                insideQuotes = !insideQuotes;
-            }
-
-        } else if (character === "," && !insideQuotes) {
-
-            values.push(value);
-            value = "";
-
-        } else {
-
-            value += character;
-
-        }
-
-    }
-
-    values.push(value);
-
-    return values;
 }
 
 function getValue(obj, fieldName) {
@@ -177,6 +188,7 @@ function getValue(obj, fieldName) {
     }
 
     return String(value).trim();
+
 }
 
 function convertDate(value) {
@@ -196,6 +208,7 @@ function convertDate(value) {
     const year = parts[2];
 
     return `${month}/${day}/${year} 00:00:00`;
+
 }
 
 function padVestigingsnummer(value) {
@@ -207,6 +220,7 @@ function padVestigingsnummer(value) {
     }
 
     return cleaned.padStart(10, "0");
+
 }
 
 function convertLine(obj) {
@@ -292,6 +306,7 @@ function convertLine(obj) {
         vendorName,
         vestigingsnummer
     ];
+
 }
 
 function escapeCsvValue(value) {
@@ -312,26 +327,45 @@ function escapeCsvValue(value) {
     }
 
     return stringValue;
+
 }
 
 function convert() {
 
     const input = document.getElementById("input").value;
     const outputElement = document.getElementById("output");
+    const vendorsElement = document.getElementById("newVendors");
+    const apiStatus = document.getElementById("apiStatus");
 
     try {
 
         if (!input.trim()) {
             outputElement.value = "";
+            vendorsElement.value = "";
+            pendingVendorNumbers = [];
+            conversionCompleted = false;
             return;
         }
 
         const records = getJsonRecords(input);
+        const processedNumbers = loadCache();
 
         const outputRows = [OUTPUT_HEADERS];
+        const newNumbers = new Set();
 
         records.forEach(obj => {
+
             outputRows.push(convertLine(obj));
+
+            const vendorNumber = getValue(obj, "vestigingsnummer");
+
+            if (
+                vendorNumber !== "" &&
+                !processedNumbers.has(vendorNumber)
+            ) {
+                newNumbers.add(vendorNumber);
+            }
+
         });
 
         const output = outputRows
@@ -342,11 +376,23 @@ function convert() {
             )
             .join("\r\n");
 
+        pendingVendorNumbers = [...newNumbers];
+        conversionCompleted = true;
+
         outputElement.value = output;
+        vendorsElement.value = JSON.stringify(pendingVendorNumbers, null, 2);
+
+        apiStatus.textContent =
+            pendingVendorNumbers.length +
+            " new vendor numbers ready for the API request.";
 
     } catch (e) {
 
         outputElement.value = "";
+        vendorsElement.value = "";
+        pendingVendorNumbers = [];
+        conversionCompleted = false;
+
         alert(e.message);
 
     }
@@ -378,6 +424,124 @@ function download() {
 
 }
 
+async function copyNewVendors() {
+
+    const text = document.getElementById("newVendors").value;
+
+    if (!text) {
+        alert("Convert the input first.");
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(text);
+    } catch (e) {
+        document.getElementById("newVendors").focus();
+        document.getElementById("newVendors").select();
+        alert("Automatic copying failed. Copy the selected text manually.");
+    }
+
+}
+
+async function sendApiRequest() {
+
+    const status = document.getElementById("apiStatus");
+
+    if (!conversionCompleted) {
+        status.textContent = "Convert the input before sending a request.";
+        return;
+    }
+
+    if (!API_URL) {
+        status.textContent =
+            "API_URL is empty. Configure the actual API endpoint in the script.";
+        return;
+    }
+
+    if (pendingVendorNumbers.length === 0) {
+        status.textContent = "No new vendor numbers to send.";
+        return;
+    }
+
+    const numbersToSend = [...pendingVendorNumbers];
+
+    status.textContent = "Sending request...";
+
+    try {
+
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(numbersToSend)
+        });
+
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
+
+        const processedNumbers = loadCache();
+
+        numbersToSend.forEach(number => {
+            processedNumbers.add(number);
+        });
+
+        saveCache(processedNumbers);
+
+        pendingVendorNumbers = pendingVendorNumbers.filter(
+            number => !processedNumbers.has(number)
+        );
+
+        document.getElementById("newVendors").value =
+            JSON.stringify(pendingVendorNumbers, null, 2);
+
+        updateCacheStatus();
+
+        status.textContent =
+            "Request successful. " +
+            numbersToSend.length +
+            " vendor numbers marked as processed.";
+
+    } catch (e) {
+
+        status.textContent =
+            "Request failed. Vendor cache was not updated: " + e.message;
+
+    }
+
+}
+
+function resetCache() {
+
+    const confirmed = confirm(
+        "Clear all cached vendor numbers? All numbers will be treated as new again."
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+
+        localStorage.removeItem(CACHE_KEY);
+        pendingVendorNumbers = [];
+        conversionCompleted = false;
+
+        document.getElementById("newVendors").value = "";
+        document.getElementById("apiStatus").textContent =
+            "Cache reset. Convert the input again.";
+
+        updateCacheStatus();
+
+    } catch (e) {
+        alert("Unable to reset the cache: " + e.message);
+    }
+
+}
+
+updateCacheStatus();
+
 </script>
 
 <div class="footer">
@@ -390,25 +554,19 @@ function download() {
                         class="link-button secondary"
                         href="https://chatgpt.com/c/6a3d066e-ec60-83eb-859d-f03c4c247fd4"
                         target="_blank"
-                    >
-                        Prompt
-                    </a>
+                    >Prompt</a>
 
                     <a
                         class="link-button secondary"
                         href="https://github.com/danijelcecelja-svg/javasciptpages"
                         target="_blank"
-                    >
-                        Code
-                    </a>
+                    >Code</a>
 
                     <a
                         class="link-button secondary"
                         href="https://danijelcecelja-svg.github.io/javasciptpages/index.html"
                         target="_blank"
-                    >
-                        Home
-                    </a>
+                    >Home</a>
 
                 </div>
             </div>
@@ -425,3 +583,4 @@ function download() {
 
 </body>
 </html>
+```
